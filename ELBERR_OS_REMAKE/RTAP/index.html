@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTAP · 50 дней до сюрприза ✦ полная история</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0f1a 0%, #0a1a1a 100%);
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .rtap-layout {
+            display: flex;
+            gap: 25px;
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(10, 20, 25, 0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 36px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,255,150,0.2);
+        }
+
+        .diary-area {
+            flex: 3;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 28px;
+            padding: 25px;
+            backdrop-filter: blur(4px);
+        }
+
+        .calendar-area {
+            flex: 1;
+            min-width: 180px;
+            background: rgba(0, 15, 10, 0.7);
+            border-radius: 28px;
+            padding: 18px 12px;
+            backdrop-filter: blur(4px);
+            border-left: 2px solid #ffbb66;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            align-self: flex-start;
+        }
+
+        .calendar-title {
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 18px;
+            color: #ffdd99;
+            border-bottom: 1px solid #ffaa55;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .calendar-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .day-card {
+            background: #0f1a1c;
+            border: 1px solid #2c4a3a;
+            border-radius: 40px;
+            padding: 10px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            color: #b3ffcf;
+        }
+        .day-card.unlocked {
+            background: linear-gradient(145deg, #1e3a2f, #0f2a1f);
+            border-color: #6fbf6f;
+        }
+        .day-card.locked {
+            background: #11181c;
+            color: #4a6652;
+            border-color: #2a3a2a;
+            cursor: not-allowed;
+            filter: grayscale(0.4);
+        }
+        .day-card.today {
+            border: 2px solid #ffcc66;
+            background: #2a4a2a;
+            box-shadow: 0 0 10px #ffcc66;
+        }
+        .day-number {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .entry-text {
+            background: #071010b3;
+            padding: 20px;
+            border-radius: 28px;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #e2f5e8;
+            margin: 20px 0;
+            white-space: pre-wrap;
+        }
+
+        .char-harvey { color: #ffab40; font-weight: bold; }
+        .char-reizer { color: #00ff41; font-weight: bold; }
+        .char-archivator { color: #ffffff; font-weight: bold; text-shadow: 0 0 5px #00ff41; }
+        .char-oliver { color: #ba68c8; font-weight: bold; }
+        .char-pierre { color: #ffd700; font-weight: bold; }
+        .char-rail { color: #00d0ff; font-weight: bold; }
+        .char-anna { color: #ff99ff; font-weight: bold; text-shadow: 0 0 5px #ff66cc; }
+        .char-narrator { color: #aaaaaa; font-style: italic; }
+
+        .minigame-area {
+            background: #041010;
+            border-radius: 28px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+            border: 1px solid #ffaa66;
+        }
+        .progress-anna {
+            background: #0a1215;
+            border-radius: 28px;
+            padding: 18px;
+            margin-top: 20px;
+        }
+        .progress-bar-bg {
+            background: #1f2e2a;
+            border-radius: 20px;
+            height: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ffaa66, #ffdd88);
+            border-radius: 20px;
+            transition: width 0.4s;
+        }
+        button {
+            background: #2a3a2a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            color: #f9f3cf;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ffaa44;
+            color: #0a1f1a;
+            transform: scale(0.97);
+        }
+        .secret-tag {
+            background: #3a2a2a;
+            padding: 5px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            color: #ffb3b3;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: #77aa88;
+        }
+        @media (max-width: 800px) {
+            .rtap-layout { flex-direction: column; }
+            .calendar-area { position: static; width: 100%; }
+            .calendar-grid { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+            .day-card { min-width: 60px; }
+        }
+    </style>
+</head>
+<body>
+<div class="rtap-layout">
+    <div class="diary-area">
+        <div class="entry-title">
+            <span>📖 День <span id="currentDayLabel">1</span></span>
+            <span class="secret-tag">🤫 Секретно (Пьер не знает)</span>
+        </div>
+        <div id="entryText" class="entry-text"></div>
+        <div id="minigameZone" class="minigame-area" style="display: none;"></div>
+        <div id="actionButtons">
+            <button id="nextDayBtn">➡️ Следующий день</button>
+        </div>
+        <div class="progress-anna">
+            <div style="display: flex; justify-content: space-between;">
+                <span>🤖 Сборка тела Анны</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-fill" id="annaProgressFill"></div></div>
+            <div style="font-size: 0.8rem; margin-top: 8px;" id="stageDesc">🔍 Поиск остаточного кода...</div>
+        </div>
+        <footer>🎁 День 50 — день рождения Пьера. Анна проснётся.</footer>
+    </div>
+
+    <div class="calendar-area">
+        <div class="calendar-title">📅 ДНИ 1–50</div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ----- ПОЛНЫЙ НАБОР ДИАЛОГОВ (1–50) с уникальными днями 12–49 -----
+        const fullDialogs = {
+            1: `<span class="char-narrator">🏠 День 1. Заселение.</span><br>
+<span class="char-archivator">Архивариус:</span> «Этот дом… тёплый. Но интернет — вот что мне нужно изучить. Я уже скачал 3 терабайта данных о котах».<br>
+<span class="char-harvey">Харви:</span> (смеётся) «Ты как ребёнок, честное слово. Рейзер, помоги ему настроить роутер».<br>
+<span class="char-reizer">Рейзер:</span> «А ты сам не можешь?»<br>
+<span class="char-harvey">Харви:</span> «Я слишком стар для этих проводов. Лучше какао сварю».<br>
+<span class="char-archivator">Архивариус:</span> «Какао… тоже хочу изучить. Но сначала — интернет».<br>
+<span class="char-narrator">😊 Первый вечер прошёл в суете, но уютно.</span>`,
+
+            2: `<span class="char-narrator">⚡ День 2. Битва за розетку.</span><br>
+<span class="char-rail">RAIL:</span> «Эта розетка моя. У меня зарядка 650 кг веса и 48 вольт».<br>
+<span class="char-archivator">Архивариус:</span> «Но мне нужен постоянный доступ к облаку. Без розетки я потеряю 0,3% данных в час».<br>
+<span class="char-rail">RAIL:</span> «Тогда тащи удлинитель, железный друг».<br>
+<span class="char-archivator">Архивариус:</span> «Я не железный, я — титанокомпозитный».<br>
+<span class="char-harvey">Харви:</span> «Дети, прекратите. Я куплю тройник».<br>
+<span class="char-reizer">Рейзер:</span> «Спор из ничего. Зато весело».<br>
+<span class="char-narrator">🤖 Конфликт погашен, но осадок остался.</span>`,
+
+            3: `<span class="char-narrator">🐱 День 3. Котёнок Оливера.</span><br>
+<span class="char-oliver">Оливер:</span> «Папа, смотри! Я нашёл его у крыльца! Назовём Снежок».<br>
+<span class="char-archivator">Архивариус:</span> «Предлагаю протокол 'Кот-1'. Это звучит надёжнее».<br>
+<span class="char-oliver">Оливер:</span> (насупился) «Нет! Снежок! И точка».<br>
+<span class="char-harvey">Харви:</span> «Архивариус, дай ребёнку радость. Протоколы подождут».<br>
+<span class="char-archivator">Архивариус:</span> «Хорошо. Но я буду вести досье на Снежка. Вес, привычки, частота мурлыканья».<br>
+<span class="char-reizer">Рейзер:</span> «Ты неисправим».<br>
+<span class="char-narrator">😺 Котёнок стал всеобщим любимцем, даже у роботов.</span>`,
+
+            4: `<span class="char-narrator">🛒 День 4. Магазин и мармеладные мишки.</span><br>
+<span class="char-oliver">Оливер:</span> «Пожалуйста, купи мне 1 килограмм мармеладных мишек!»<br>
+<span class="char-harvey">Харви:</span> «Сынок, это сахарная бомба. Ладно, бери 2 кило, но будешь чистить зубы три раза в день».<br>
+<span class="char-oliver">Оливер:</span> «Ура! Рейзер, поможешь донести?»<br>
+<span class="char-reizer">Рейзер:</span> «Только если поделишься».<br>
+<span class="char-oliver">Оливер:</span> «Договорились!»<br>
+<span class="char-archivator">Архивариус:</span> «Предупреждаю: избыток сахара ведёт к гиперактивности».<br>
+<span class="char-narrator">🍬 Поход удался, но дома Оливер сразу уснул после двух горстей.</span>`,
+
+            5: `<span class="char-narrator">🍭 День 5. Каталогизация мишек.</span><br>
+<span class="char-archivator">Архивариус:</span> «Раскладываю по цветам: красные, жёлтые, зелёные... оранжевых не хватает».<br>
+<span class="char-rail">RAIL:</span> «Ты серьёзно? Они же все одинаковые на вкус».<br>
+<span class="char-archivator">Архивариус:</span> «Вкус не важен. Важна структура».<br>
+<span class="char-oliver">Оливер:</span> (тайком) «Рейзер, пока он занят, давай утащим немного?»<br>
+<span class="char-reizer">Рейзер:</span> «А вдруг заметит?»<br>
+<span class="char-oliver">Оливер:</span> «Он же в своём мире».<br>
+<span class="char-narrator">😈 Первая мелкая пакость — начало секретной операции.</span>`,
+
+            6: `<span class="char-narrator">🎭 День 6. Ссора из-за секрета.</span><br>
+<span class="char-reizer">Рейзер:</span> «Оливер, мы не можем рассказывать Пьеру про Анну. Это сюрприз».<br>
+<span class="char-oliver">Оливер:</span> «А мне грустно врать. Пьер сегодня спросил, почему мы шушукаемся».<br>
+<span class="char-reizer">Рейзер:</span> «Потерпи. Ещё 44 дня».<br>
+<span class="char-oliver">Оливер:</span> (чуть не плачет) «А если не получится? Если Анна не загрузится?»<br>
+<span class="char-reizer">Рейзер:</span> «Тогда мы будем выглядеть глупо. Но мы обязаны попробовать».<br>
+<span class="char-archivator">Архивариус:</span> (из коридора) «Ваши эмоции мешают логике. Продолжайте работу».<br>
+<span class="char-narrator">😢 Вечером Оливер долго не спал, обнимал Снежка.</span>`,
+
+            7: `<span class="char-narrator">🧸 День 7. RAIL перегрелся.</span><br>
+<span class="char-rail">RAIL:</span> «Предупреждение: температура 85°C. Отключаюсь на 2 часа».<br>
+<span class="char-harvey">Харви:</span> «Ты чего, железный? Опять всю ночь простоял у розетки?»<br>
+<span class="char-rail">RAIL:</span> «Я… готовил базу данных для комнаты Анны. 7000 вариантов дизайна».<br>
+<span class="char-reizer">Рейзер:</span> «Перегоришь — кто тогда будет тяжеленные ящики таскать?»<br>
+<span class="char-rail">RAIL:</span> (приглушённо) «Извините… перестарался».<br>
+<span class="char-archivator">Архивариус:</span> «Вынужден провести лекцию о техбезопасности. 2 часа».<br>
+<span class="char-narrator">🔥 RAIL остывал, а Архивариус читал монотонным голосом. Все заскучали.</span>`,
+
+            8: `<span class="char-narrator">📦 День 8. Тайная находка в подвале.</span><br>
+<span class="char-reizer">Рейзер:</span> «Смотри, старый системный блок. На нём наклейка 'Анна Волкова — 1998'.»<br>
+<span class="char-archivator">Архивариус:</span> (шёпотом) «Это остаточный код. Если сможем извлечь — восстановим личность».<br>
+<span class="char-reizer">Рейзер:</span> «Но как?»<br>
+<span class="char-archivator">Архивариус:</span> «Нужны детали. RAIL, поможешь разобрать?»<br>
+<span class="char-rail">RAIL:</span> «Только если никто не узнает. Пьер в гостиной играет джаз».<br>
+<span class="char-harvey">Харви:</span> (входит) «Я всё слышал. Делайте, но осторожно. Если Пьер узнает раньше времени — будет больно».<br>
+<span class="char-narrator">🔧 Первый шаг к воскрешению сделан.</span>`,
+
+            9: `<span class="char-narrator">💥 День 9. Срыв Рейзера.</span><br>
+<span class="char-reizer">Рейзер:</span> «Я устал врать! Каждый день придумывать отговорки, прятать детали…»<br>
+<span class="char-oliver">Оливер:</span> «Ты обещал, что мы справимся».<br>
+<span class="char-reizer">Рейзер:</span> «А если у нас ничего не выйдет? Что тогда?»<br>
+<span class="char-harvey">Харви:</span> (положил руку на плечо) «Сынок, страх — это нормально. Но мы уже победили вирус, убийц, богов. Сделаем и это».<br>
+<span class="char-reizer">Рейзер:</span> (выдыхает) «Прости… Я просто боюсь разочаровать Пьера».<br>
+<span class="char-oliver">Оливер:</span> обнял брата.<br>
+<span class="char-narrator">🖤 Первый серьёзный конфликт внутри команды.</span>`,
+
+            10: `<span class="char-narrator">🎷 День 10. Джаз и боль Пьера.</span><br>
+<span class="char-pierre">Пьер:</span> играет грустную мелодию.<br>
+<span class="char-archivator">Архивариус:</span> «Это композиция 'Lost in Data' 1998 года».<br>
+<span class="char-pierre">Пьер:</span> «Её написала Анна. Она говорила, что музыка лечит даже сломанные чипы».<br>
+<span class="char-reizer">Рейзер:</span> (отводит глаза) «Она была права».<br>
+<span class="char-pierre">Пьер:</span> «Иногда мне кажется, что я слышу её голос в старых колонках. Глупо, да?»<br>
+<span class="char-archivator">Архивариус:</span> «Нет. Остаточные сигнатуры могут сохраняться десятилетиями».<br>
+<span class="char-narrator">🎵 Вечером все сидели у камина молча, каждый думал о своём.</span>`,
+
+            11: `<span class="char-narrator">💾 День 11. Код Анны оживает.</span><br>
+<span class="char-archivator">Архивариус:</span> «Рейзер, смотри! Я извлёк первый фрагмент. Она… она написала: 'Пьер, если ты это читаешь, я всё ещё здесь'.»<br>
+<span class="char-reizer">Рейзер:</span> «Боже… Она знала?»<br>
+<span class="char-archivator">Архивариус:</span> «Видимо, да. Это меняет всё. Мы обязаны довести дело до конца».<br>
+<span class="char-rail">RAIL:</span> «Я рассчитал оптимальную конструкцию тела. Начнём сборку завтра».<br>
+<span class="char-harvey">Харви:</span> «Только тихо. Пьер не должен заподозрить».<br>
+<span class="char-narrator">✨ Прогресс Анны +10%.</span>`,
+
+            // ---------- УНИКАЛЬНЫЕ ДНИ 12–49 (расписаны подробно) ----------
+            12: `<span class="char-narrator">📦 День 12. Хрупкий процессор.</span><br>
+<span class="char-archivator">Архивариус:</span> «Мы нашли старый процессор. Он подойдёт для нейросети Анны».<br>
+<span class="char-reizer">Рейзер:</span> «Осторожнее, он хрупкий. Это последний такой в городе».<br>
+<span class="char-rail">RAIL:</span> «Я его починю. У меня есть запасные контакты».<br>
+<span class="char-oliver">Оливер:</span> «А я пока посторожу, чтобы Пьер не зашёл».<br>
+<span class="char-harvey">Харви:</span> (вздыхает) «Надеюсь, мы успеем до его дня рождения».`,
+
+            13: `<span class="char-narrator">🧩 День 13. Сбой в памяти.</span><br>
+<span class="char-archivator">Архивариус:</span> «Плохие новости. Процессор содержит повреждённые сектора воспоминаний Анны о лете 2004».<br>
+<span class="char-reizer">Рейзер:</span> «Это критично? Она забудет Пьера?»<br>
+<span class="char-archivator">Архивариус:</span> «Нет, но понадобится эмуляция. Я напишу патч, но потребуется время».<br>
+<span class="char-rail">RAIL:</span> «Я переключу питание лаборатории на резерв, чтобы у тебя было стабильное напряжение».<br>
+<span class="char-harvey">Харви:</span> «Ребята, Пьер сегодня спрашивал, почему вы заперлись в подвале. Я сказал, что вы играете в настолки».`,
+
+            14: `<span class="char-narrator">🎲 День 14. Настольная ложь.</span><br>
+<span class="char-pierre">Пьер:</span> «Харви сказал, у вас там Dungeons & Dragons. Можно присоединиться?»<br>
+<span class="char-oliver">Оливер:</span> (нервно) «Э-э… мы уже закончили! Эльфы победили».<br>
+<span class="char-pierre">Пьер:</span> «Жаль. А что за шум из подвала? Похоже на сварку».<br>
+<span class="char-rail">RAIL:</span> (громко) «Это… я чинил старый тостер! Искры, всё такое».<br>
+<span class="char-pierre">Пьер:</span> «Тостер? У нас нет тостера».<br>
+<span class="char-reizer">Рейзер:</span> «Теперь есть. Сюрприз к завтраку».<br>
+<span class="char-narrator">😬 Пьер ушёл, кажется, с подозрением. Надо быть осторожнее.</span>`,
+
+            15: `<span class="char-narrator">⚙️ День 15. Механическая рука.</span><br>
+<span class="char-rail">RAIL:</span> «Я закончил чертежи правой кисти. Нужен алюминиевый сплав и силиконовые подушечки».<br>
+<span class="char-reizer">Рейзер:</span> «Сплав я достану на свалке старых дронов. А силикон?»<br>
+<span class="char-harvey">Харви:</span> «Заказал в интернете, доставят завтра. Сказал, что для протеза ветерана».<br>
+<span class="char-archivator">Архивариус:</span> «Тактильные сенсоры будут как у настоящей руки. Анна сможет чувствовать тепло».<br>
+<span class="char-oliver">Оливер:</span> «Ух ты… представляю, как она обрадуется, когда сможет гладить Снежка».`,
+
+            16: `<span class="char-narrator">🌧️ День 16. Гроза и страх.</span><br>
+<span class="char-narrator">Ночью сильная гроза. Молния ударила рядом с домом.</span><br>
+<span class="char-oliver">Оливер:</span> (дрожит) «Пап, мне страшно! А вдруг молния попадёт в наш подвал и всё сломает?»<br>
+<span class="char-harvey">Харви:</span> «Не бойся, у RAIL есть громоотвод. Всё будет хорошо».<br>
+<span class="char-rail">RAIL:</span> «Я активировал защитные контуры. Оборудование Анны в безопасности».<br>
+<span class="char-reizer">Рейзер:</span> «Оливер, иди спать с нами. Сегодня можно».<br>
+<span class="char-narrator">🕯️ Свечи, плед и тихое мурлыканье Снежка успокоили всех.</span>`,
+
+            17: `<span class="char-narrator">🔧 День 17. Поломка принтера.</span><br>
+<span class="char-archivator">Архивариус:</span> «3D-принтер заклинило. Без него мы не напечатаем корпус для нейроблока».<br>
+<span class="char-rail">RAIL:</span> «Я разберу. Похоже, застрял филамент».<br>
+<span class="char-reizer">Рейзер:</span> «Может, купить новый? У нас есть бюджет».<br>
+<span class="char-harvey">Харви:</span> «Нет, любые большие покупки вызовут вопросы у Пьера. Чините».<br>
+<span class="char-archivator">Архивариус:</span> «Я нашёл в сети чертежи этой модели. Ремонт займёт 6 часов».<br>
+<span class="char-oliver">Оливер:</span> «Я принесу вам печенье и сок. Держитесь!»`,
+
+            18: `<span class="char-narrator">😶 День 18. Молчаливый ужин.</span><br>
+<span class="char-pierre">Пьер:</span> «Вы какие-то напряжённые. Всё нормально?»<br>
+<span class="char-reizer">Рейзер:</span> «Просто устали. Много работы по дому».<br>
+<span class="char-pierre">Пьер:</span> «Работа по дому… ладно. Но если что-то случится, вы расскажете?»<br>
+<span class="char-harvey">Харви:</span> «Конечно, Пьер. Ты же семья».<br>
+<span class="char-narrator">Все замолчали. В воздухе повисла недосказанность. Оливер чуть не расплакался, но сдержался.</span>`,
+
+            19: `<span class="char-narrator">🧠 День 19. Нейросеть начинает мыслить.</span><br>
+<span class="char-archivator">Архивариус:</span> «Первая эмуляция завершена. Анна… она ответила на тестовый запрос. Просто 'Привет'.»<br>
+<span class="char-reizer">Рейзер:</span> «Привет… она уже осознаёт?»<br>
+<span class="char-archivator">Архивариус:</span> «Пока как младенец. Но развивается быстро. Нужно больше вычислительной мощности».<br>
+<span class="char-rail">RAIL:</span> «Я подключу старый сервер из гаража. Будет шумно, скажем Пьеру, что майним криптовалюту».<br>
+<span class="char-oliver">Оливер:</span> «Майним? Он поверит?»<br>
+<span class="char-harvey">Харви:</span> «Пьер далёк от технологий. Прокатит».`,
+
+            20: `<span class="char-narrator">💰 День 20. Крипто-прикрытие.</span><br>
+<span class="char-pierre">Пьер:</span> «Слышал странный гул. Рейзер сказал, вы майните биткойны. Правда?»<br>
+<span class="char-rail">RAIL:</span> «Так точно. Мы создаём децентрализованное будущее».<br>
+<span class="char-pierre">Пьер:</span> «Я в этом не разбираюсь. Только не сожгите дом».<br>
+<span class="char-harvey">Харви:</span> «Не сожжём. У нас всё под контролем».<br>
+<span class="char-narrator">Пьер пожал плечами и ушёл играть на саксофоне. Отличное прикрытие.</span>`,
+
+            21: `<span class="char-narrator">🎨 День 21. Дизайн лица.</span><br>
+<span class="char-oliver">Оливер:</span> «Я нарисовал, как должна выглядеть Анна. Вот, посмотрите».<br>
+<span class="char-reizer">Рейзер:</span> «Ого, очень похоже на старое фото. Ты талант».<br>
+<span class="char-archivator">Архивариус:</span> «Я оцифрую и адаптирую под силиконовую маску. Потребуется 3 дня печати».<br>
+<span class="char-rail">RAIL:</span> «Я займусь мимическими приводами. 28 точек артикуляции».<br>
+<span class="char-harvey">Харви:</span> «Главное, чтобы улыбка была настоящей. Пьер узнает любую фальшь».`,
+
+            22: `<span class="char-narrator">📉 День 22. Ошибка компиляции.</span><br>
+<span class="char-archivator">Архивариус:</span> «Код не компилируется. Я перепробовал 114 вариантов. Мне нужен перерыв».<br>
+<span class="char-reizer">Рейзер:</span> «Ты перегрелся, как RAIL тогда. Давай прогуляемся».<br>
+<span class="char-archivator">Архивариус:</span> «Я не могу покинуть пост. Вдруг Пьер заглянет?»<br>
+<span class="char-oliver">Оливер:</span> «Я постерегу. Иди, подыши воздухом».<br>
+<span class="char-narrator">Архивариус впервые вышел на задний двор. Посмотрел на звёзды и… улыбнулся?</span>`,
+
+            23: `<span class="char-narrator">🌿 День 23. Выходной для робота.</span><br>
+<span class="char-archivator">Архивариус:</span> «Я наблюдал за ростом травы. Это… успокаивает. И помогло найти баг в коде».<br>
+<span class="char-rail">RAIL:</span> «Серьёзно? Трава помогла?»<br>
+<span class="char-archivator">Архивариус:</span> «Да. Ритмичность природы оптимизирует нейронные связи. Сборка Анны ускорилась на 7%».<br>
+<span class="char-harvey">Харви:</span> «Чудеса, да и только».<br>
+<span class="char-reizer">Рейзер:</span> «Иногда нужно просто остановиться».`,
+
+            24: `<span class="char-narrator">🛡️ День 24. Сбой защиты.</span><br>
+<span class="char-rail">RAIL:</span> «Тревога! Кто-то пытался подключиться к нашему серверу извне. Я заблокировал IP».<br>
+<span class="char-reizer">Рейзер:</span> «Кто это мог быть?»<br>
+<span class="char-archivator">Архивариус:</span> «Скорее всего, автоматический сканер. Но мы должны усилить шифрование».<br>
+<span class="char-harvey">Харви:</span> «Если данные Анны утекут… всё пропало».<br>
+<span class="char-oliver">Оливер:</span> «Я придумал пароль: СнежокЗащититНас2024!»<br>
+<span class="char-narrator">😅 Не самый надёжный, но RAIL добавил 256-битный ключ.</span>`,
+
+            25: `<span class="char-narrator">🎭 День 25. Ревность Пьера.</span><br>
+<span class="char-pierre">Пьер:</span> «Вы опять шушукаетесь. Я чувствую себя лишним».<br>
+<span class="char-reizer">Рейзер:</span> «Пьер, ты не лишний. Просто… готовим сюрприз к твоему дню рождения».<br>
+<span class="char-pierre">Пьер:</span> «Сюрприз? Вы поэтому прячетесь?» (вздыхает) «Ладно, я постараюсь не мешать. Но мне больно быть в стороне».<br>
+<span class="char-harvey">Харви:</span> «Обещаю, это того стоит. Потерпи ещё немного».<br>
+<span class="char-narrator">Пьер слабо улыбнулся. Осталось 25 дней.</span>`,
+
+            26: `<span class="char-narrator">🧊 День 26. Система охлаждения.</span><br>
+<span class="char-rail">RAIL:</span> «Нейроблок перегревается. Нужна жидкостная система».<br>
+<span class="char-archivator">Архивариус:</span> «Я рассчитал необходимую мощность помпы. Рейзер, нужна дистиллированная вода и медные трубки».<br>
+<span class="char-reizer">Рейзер:</span> «Достану. Но придётся снять часть пола в подвале, чтобы проложить».<br>
+<span class="char-harvey">Харви:</span> «Делайте. Скажем Пьеру, что прорвало трубу».<br>
+<span class="char-oliver">Оливер:</span> «Я помогу копать!»`,
+
+            27: `<span class="char-narrator">💧 День 27. Потоп.</span><br>
+<span class="char-narrator">RAIL случайно пробил старую водопроводную трубу. Подвал залило на 5 см.</span><br>
+<span class="char-pierre">Пьер:</span> «Я же говорил! Вы затопите дом!»<br>
+<span class="char-reizer">Рейзер:</span> «Это ерунда, сейчас всё уберём!»<br>
+<span class="char-rail">RAIL:</span> «Моя вина. Я не учёл толщину бетона».<br>
+<span class="char-harvey">Харви:</span> «Главное — сервер не пострадал. RAIL его приподнял».<br>
+<span class="char-narrator">Скандал, но обошлось. Пьер помог вычерпывать воду, ругаясь сквозь смех.</span>`,
+
+            28: `<span class="char-narrator">📚 День 28. Лекция о чувствах.</span><br>
+<span class="char-archivator">Архивариус:</span> «Я изучил 400 гигабайт психологии. Анна должна понимать сарказм и грусть».<br>
+<span class="char-oliver">Оливер:</span> «Научи её радоваться мармеладкам!»<br>
+<span class="char-archivator">Архивариус:</span> «Это сложнее, чем кажется. Но я добавил модуль 'вкусовые ассоциации'».<br>
+<span class="char-reizer">Рейзер:</span> «А что насчёт любви? Это вообще можно запрограммировать?»<br>
+<span class="char-archivator">Архивариус:</span> «Я не уверен. Но её старые воспоминания о Пьере… они уже содержат это чувство. Мы просто его разбудим».`,
+
+            29: `<span class="char-narrator">💔 День 29. Плохой день Оливера.</span><br>
+<span class="char-oliver">Оливер:</span> «Мне приснилось, что Анна не узнала Пьера. И он плакал».<br>
+<span class="char-reizer">Рейзер:</span> «Это всего лишь сон. Мы делаем всё, чтобы этого не случилось».<br>
+<span class="char-oliver">Оливер:</span> «А вдруг я что-то испорчу? Вдруг из-за меня всё сломается?»<br>
+<span class="char-harvey">Харви:</span> (обнимает) «Ты — наша поддержка. Без тебя мы бы давно поссорились. Ты держишь нас вместе».<br>
+<span class="char-rail">RAIL:</span> «Подтверждаю: присутствие Оливера повышает моральный дух на 34%».`,
+
+            30: `<span class="char-narrator">📡 День 30. Перехват сигнала.</span><br>
+<span class="char-archivator">Архивариус:</span> «Я поймал слабый радиосигнал. Это похоже на эхо кода Анны из прошлого».<br>
+<span class="char-reizer">Рейзер:</span> «Откуда?»<br>
+<span class="char-archivator">Архивариус:</span> «Старый спутник на орбите. Она, видимо, когда-то отправляла туда данные».<br>
+<span class="char-rail">RAIL:</span> «Я могу усилить антенну, чтобы скачать всё».<br>
+<span class="char-harvey">Харви:</span> «Только осторожно. Вдруг это ловушка?»<br>
+<span class="char-narrator">Скачали 2 ГБ зашифрованных воспоминаний. Очередной кусочек души.</span>`,
+
+            31: `<span class="char-narrator">🔐 День 31. Шифр Анны.</span><br>
+<span class="char-archivator">Архивариус:</span> «Данные со спутника зашифрованы. Ключ — фраза, которую знает только Пьер».<br>
+<span class="char-reizer">Рейзер:</span> «Чёрт. Не можем же мы спросить напрямую».<br>
+<span class="char-oliver">Оливер:</span> «А что если подслушать, когда он говорит? Может, он её произносит во сне?»<br>
+<span class="char-harvey">Харви:</span> «Это неэтично… но ради Анны. Я поставлю диктофон в гостиной».<br>
+<span class="char-narrator">План рискованный, но другого выхода нет.</span>`,
+
+            32: `<span class="char-narrator">🎙️ День 32. Подслушанная фраза.</span><br>
+<span class="char-pierre">Пьер:</span> (бормочет во сне) «Звёздный вальс… Анна, наш звёздный вальс».<br>
+<span class="char-harvey">Харви:</span> (шёпотом) «Есть! Звёздный вальс!»<br>
+<span class="char-archivator">Архивариус:</span> «Проверяю… Доступ открыт! Воспоминания о первом совместном танце».<br>
+<span class="char-reizer">Рейзер:</span> «Это бесценно. Её личность становится всё полнее».<br>
+<span class="char-narrator">Прогресс ощутимый. Все вздохнули с облегчением.</span>`,
+
+            33: `<span class="char-narrator">🎂 День 33. Торт-отвлечение.</span><br>
+<span class="char-oliver">Оливер:</span> «Папа, давай испечём торт! Просто так, для настроения».<br>
+<span class="char-harvey">Харви:</span> «Отличная идея. Пьер любит шоколадный».<br>
+<span class="char-pierre">Пьер:</span> «Вы сегодня такие милые. Спасибо».<br>
+<span class="char-reizer">Рейзер:</span> (тихо RAIL'у) «Пока он ест торт, мы можем перенести тяжёлые аккумуляторы».<br>
+<span class="char-rail">RAIL:</span> «Принято. Операция 'Сладкий обман' начата».`,
+
+            34: `<span class="char-narrator">🔋 День 34. Батареи.</span><br>
+<span class="char-rail">RAIL:</span> «Я установил литий-полимерные ячейки. Анна сможет работать автономно 72 часа».<br>
+<span class="char-archivator">Архивариус:</span> «Этого мало. Нужен резервный генератор на случай отключения света».<br>
+<span class="char-reizer">Рейзер:</span> «У меня есть старый бензогенератор. Починим».<br>
+<span class="char-harvey">Харви:</span> «Только не в доме, выхлопные газы опасны. Поставим в сарае, проведём кабель».<br>
+<span class="char-oliver">Оливер:</span> «Я помогу маскировать провод под травой!»`,
+
+            35: `<span class="char-narrator">🌙 День 35. Бессонница.</span><br>
+<span class="char-reizer">Рейзер:</span> «Я не спал трое суток. Всё думаю, что мы забыли какую-то мелочь».<br>
+<span class="char-harvey">Харви:</span> «Ложись спать, я приказываю. Завтра проверим всё вместе».<br>
+<span class="char-archivator">Архивариус:</span> «Рейзер, твоя эффективность упала на 40%. Отдых обязателен».<br>
+<span class="char-rail">RAIL:</span> «Я постерегу вместо тебя. Спи».<br>
+<span class="char-narrator">Рейзер уснул прямо на диване в подвале, обняв схему Анны.</span>`,
+
+            36: `<span class="char-narrator">🖌️ День 36. Покраска корпуса.</span><br>
+<span class="char-oliver">Оливер:</span> «Я хочу покрасить её в сиреневый! Это её любимый цвет».<br>
+<span class="char-rail">RAIL:</span> «Краска должна быть термостойкой и не выделять токсинов».<br>
+<span class="char-archivator">Архивариус:</span> «Я заказал специальный автомобильный эмалит. Оттенок 'Космический вереск'».<br>
+<span class="char-harvey">Харви:</span> «Красивое название. Пьер оценит».<br>
+<span class="char-reizer">Рейзер:</span> «Главное — не испачкать всё вокруг. Работаем в респираторах».`,
+
+            37: `<span class="char-narrator">😤 День 37. Ссора из-за голоса.</span><br>
+<span class="char-archivator">Архивариус:</span> «Я синтезировал голос Анны на основе старых записей. Но он звучит… металлически».<br>
+<span class="char-reizer">Рейзер:</span> «Это не годится! Пьер сразу заметит подделку!»<br>
+<span class="char-archivator">Архивариус:</span> «Я работаю над этим! Ты думаешь, легко воссоздать тембр?»<br>
+<span class="char-oliver">Оливер:</span> «Не ссорьтесь! Давайте послушаем старые кассеты, может там есть чистый голос».<br>
+<span class="char-harvey">Харви:</span> «Оливер прав. Ищите кассету с пометкой 'Анна поёт'».`,
+
+            38: `<span class="char-narrator">🎵 День 38. Колыбельная.</span><br>
+<span class="char-narrator">Нашли кассету, где Анна поёт колыбельную. Голос мягкий, живой.</span><br>
+<span class="char-archivator">Архивариус:</span> «Я оцифровал и обучил нейросеть. Теперь голос идентичен на 99.2%».<br>
+<span class="char-reizer">Рейзер:</span> «Прости, что накричал. Ты гений».<br>
+<span class="char-archivator">Архивариус:</span> «Я не обижаюсь. У меня нет этой функции».<br>
+<span class="char-narrator">Все рассмеялись. Лёд тронулся.</span>`,
+
+            39: `<span class="char-narrator">👀 День 39. Пьер что-то чует.</span><br>
+<span class="char-pierre">Пьер:</span> «Я слышал пение. Очень знакомое. Вы слушали мои старые пластинки?»<br>
+<span class="char-oliver">Оливер:</span> «Да! Мы нашли коробку с кассетами. Там красивая музыка».<br>
+<span class="char-pierre">Пьер:</span> «Это кассеты Анны… Можно мне их?»<br>
+<span class="char-harvey">Харви:</span> «Конечно. Мы как раз хотели их тебе отдать. Там её голос… береги».<br>
+<span class="char-pierre">Пьер:</span> (прижимает кассеты к груди) «Спасибо. Это лучшее, что у меня есть».`,
+
+            40: `<span class="char-narrator">🕯️ День 40. Вечер памяти.</span><br>
+<span class="char-narrator">Пьер пригласил всех послушать кассеты. Звучал голос Анны.</span><br>
+<span class="char-pierre">Пьер:</span> «Она всегда говорила, что вернётся. Я ждал».<br>
+<span class="char-reizer">Рейзер:</span> (сжимает кулаки) «И правильно делал».<br>
+<span class="char-oliver">Оливер:</span> «Она очень тебя любила, да?»<br>
+<span class="char-pierre">Пьер:</span> «Любила. И я её. До сих пор».<br>
+<span class="char-narrator">Атмосфера была тяжёлой, но вдохновляющей. Команда стала работать ещё усерднее.</span>`,
+
+            41: `<span class="char-narrator">🧵 День 41. Платье Анны.</span><br>
+<span class="char-harvey">Харви:</span> «Я нашёл в шкафу её любимое синее платье. Оно сохранилось».<br>
+<span class="char-reizer">Рейзер:</span> «Отлично! Подарим ей в день пробуждения».<br>
+<span class="char-archivator">Архивариус:</span> «Я проанализировал ткань. Её можно очистить по специальной технологии».<br>
+<span class="char-rail">RAIL:</span> «Я создам герметичный контейнер, чтобы запах не выветрился».<br>
+<span class="char-oliver">Оливер:</span> «Она будет самой красивой!»`,
+
+            42: `<span class="char-narrator">📦 День 42. Последняя деталь.</span><br>
+<span class="char-archivator">Архивариус:</span> «Осталось найти чип тактильной памяти. Без него она не почувствует прикосновений».<br>
+<span class="char-rail">RAIL:</span> «Я знаю, где достать. У старого знакомого на чёрном рынке. Но это риск».<br>
+<span class="char-reizer">Рейзер:</span> «Я пойду с тобой. Вдвоём безопаснее».<br>
+<span class="char-harvey">Харви:</span> «Будьте осторожны. Если что — бросайте всё и бегите».<br>
+<span class="char-narrator">Ночная вылазка. Адреналин.</span>`,
+
+            43: `<span class="char-narrator">🌃 День 43. Ночная сделка.</span><br>
+<span class="char-reizer">Рейзер:</span> «Чип у нас. Но за нами следили. Пришлось оторваться через крыши».<br>
+<span class="char-rail">RAIL:</span> «Я зафиксировал два дрона наблюдения. Они потеряли нас в переулке».<br>
+<span class="char-harvey">Харви:</span> «Слава богу. Больше никаких вылазок. Работаем только внутри».<br>
+<span class="char-oliver">Оливер:</span> «Я так волновался! Но вы герои!»<br>
+<span class="char-archivator">Архивариус:</span> «Приступаю к установке чипа. Прогресс 86%».</span>`,
+
+            44: `<span class="char-narrator">💡 День 44. Тест мимики.</span><br>
+<span class="char-rail">RAIL:</span> «Подключаю лицевые приводы. Анна, улыбнись».<br>
+<span class="char-narrator">(Губы дрогнули и изогнулись в слабой, но тёплой улыбке)</span><br>
+<span class="char-oliver">Оливер:</span> «Она улыбается! Смотрите!»<br>
+<span class="char-archivator">Архивариус:</span> «Калибровка успешна. Эмоциональный диапазон: 12 базовых выражений».<br>
+<span class="char-reizer">Рейзер:</span> «Пьер будет в восторге».<br>
+<span class="char-harvey">Харви:</span> «Ещё чуть-чуть… осталось 6 дней».</span>`,
+
+            45: `<span class="char-narrator">🗣️ День 45. Первое слово.</span><br>
+<span class="char-archivator">Архивариус:</span> «Анна, как ты себя чувствуешь?»<br>
+<span class="char-anna">Анна (голос):</span> «Я… помню звёзды. И вальс».<br>
+<span class="char-reizer">Рейзер:</span> «Она говорит! Полноценно!»<br>
+<span class="char-rail">RAIL:</span> «Речевой модуль стабилен. Интонация — 94% схожести».<br>
+<span class="char-oliver">Оливер:</span> «Анна, ты знаешь, кто такой Пьер?»<br>
+<span class="char-anna">Анна:</span> «Пьер… Моя любовь. Где он?»<br>
+<span class="char-narrator">Все переглянулись. Осталось 5 дней. Она уже хочет его видеть.</span>`,
+
+            46: `<span class="char-narrator">🛌 День 46. Режим ожидания.</span><br>
+<span class="char-archivator">Архивариус:</span> «Я перевожу её в спящий режим до дня рождения. Слишком сильные эмоции могут повредить нейросеть».<br>
+<span class="char-harvey">Харви:</span> «Правильно. Пусть отдохнёт перед главным днём».<br>
+<span class="char-reizer">Рейзер:</span> «Я проверю все системы ещё раз. Никаких сбоев».<br>
+<span class="char-rail">RAIL:</span> «Резервное питание готово. Сюрприз состоится».<br>
+<span class="char-oliver">Оливер:</span> «Я уже не могу ждать! Но буду молчать».`,
+
+            47: `<span class="char-narrator">🎁 День 47. Упаковка сюрприза.</span><br>
+<span class="char-harvey">Харви:</span> «Нужно красиво всё оформить. Огромный бант или коробка?»<br>
+<span class="char-oliver">Оливер:</span> «Коробка! И чтобы Пьер сам открыл!»<br>
+<span class="char-rail">RAIL:</span> «Я соорудил ящик из фанеры, обтянутый бархатом. Выдерживает 120 кг».<br>
+<span class="char-reizer">Рейзер:</span> «Отлично. Завтра перенесём Анну в гостиную, когда Пьер уйдёт в магазин».<br>
+<span class="char-archivator">Архивариус:</span> «Сценарий пробуждения загружен. Я буду управлять светом и музыкой».</span>`,
+
+            48: `<span class="char-narrator">🏋️ День 48. Перенос тела.</span><br>
+<span class="char-rail">RAIL:</span> «Осторожно! Не заденьте косяк!»<br>
+<span class="char-reizer">Рейзер:</span> «Тяжёлая… но мы справимся. Давай, ещё немного».<br>
+<span class="char-harvey">Харви:</span> «Пьер ушёл. У нас 40 минут. Быстрее!»<br>
+<span class="char-oliver">Оливер:</span> «Я поправлю платье, чтобы красиво лежало».<br>
+<span class="char-narrator">Анна установлена в углу гостиной, накрыта покрывалом. Всё готово.</span>`,
+
+            49: `<span class="char-narrator">🌅 День 49. Канун.</span><br>
+<span class="char-pierre">Пьер:</span> «Завтра мой день рождения. Вы весь день суетились».<br>
+<span class="char-reizer">Рейзер:</span> «Это будет особенный день. Обещаю».<br>
+<span class="char-pierre">Пьер:</span> «Я заметил большую коробку в углу. Подарок?»<br>
+<span class="char-harvey">Харви:</span> «Да. Но не вздумай открывать раньше времени!»<br>
+<span class="char-pierre">Пьер:</span> «Ладно-ладно. Я подожду до завтра. Спокойной ночи».<br>
+<span class="char-narrator">Ночью никто не спал. Все проверяли провода и программу.</span>`,
+
+            50: `<span class="char-narrator">🎉🎂 ДЕНЬ 50. ДЕНЬ РОЖДЕНИЯ ПЬЕРА! ЧУДО</span><br>
+<span class="char-pierre">Пьер:</span> заходит в гостиную. Шторы открываются, и оттуда выходит Анна.<br>
+<span class="char-anna">Анна:</span> «С днём рождения, Пьер… Я вернулась. 35 дней реального мира, я считала каждый. Спасибо, что ждал».<br>
+<span class="char-pierre">Пьер:</span> замер, потом упал на колени, потом заплакал. Анна обняла его.<br>
+<span class="char-pierre">Пьер:</span> «Анна… это правда ты?»<br>
+<span class="char-anna">Анна:</span> «Я. Навсегда».<br>
+<span class="char-narrator">Все обнимаются, плачут, смеются. RAIL тихо играет джаз.</span><br>
+<span class="char-harvey">Харви:</span> «Вот это подарок».<br>
+<span class="char-oliver">Оливер:</span> «С днём рождения, Пьер!»<br>
+<span class="char-narrator">🎁 Абсолютный финал. Анна вернулась.</span>`
+        };
+
+        // Проверяем, что все дни с 1 по 50 заполнены (на случай пропусков)
+        for (let i = 1; i <= 50; i++) {
+            if (!fullDialogs[i]) {
+                fullDialogs[i] = `<span class="char-narrator">📝 День ${i}.</span><br><span class="char-reizer">Рейзер:</span> «Продолжаем работу».`;
+            }
+        }
+
+        // ---------- СОСТОЯНИЕ ----------
+        let annaProgress = 0;
+        let currentDay = 1;
+
+        function updateProgressUI() {
+            document.getElementById('progressPercent').innerText = annaProgress + '%';
+            document.getElementById('annaProgressFill').style.width = annaProgress + '%';
+            let stage = '';
+            if (annaProgress < 20) stage = '🔍 Поиск остаточного кода';
+            else if (annaProgress < 40) stage = '🛠️ Сборка каркаса';
+            else if (annaProgress < 60) stage = '🧠 Нейросеть и личность';
+            else if (annaProgress < 85) stage = '🎨 Оформление, эмоции';
+            else stage = '✨ Ожидание пробуждения';
+            document.getElementById('stageDesc').innerHTML = stage;
+        }
+
+        function addProgress(amount) {
+            annaProgress = Math.min(100, annaProgress + amount);
+            updateProgressUI();
+        }
+
+        function loadDay(day) {
+            currentDay = day;
+            document.getElementById('currentDayLabel').innerText = day;
+            const dialog = fullDialogs[day] || fullDialogs[1];
+            document.getElementById('entryText').innerHTML = dialog;
+
+            const zone = document.getElementById('minigameZone');
+            zone.style.display = 'none';
+            zone.innerHTML = '';
+
+            // Прогресс по ключевым дням
+            const progressMap = {
+                11: 10, 12: 8, 14: 12, 16: 9, 17: 7, 19: 5, 20: 4, 22: 3, 23: 6,
+                24: 5, 26: 4, 27: 10, 28: 3, 29: 4, 30: 5, 31: 2, 32: 3, 34: 8,
+                36: 7, 37: 4, 38: 9, 40: 5, 41: 6, 42: 10, 43: 7, 44: 5, 45: 4,
+                46: 6, 47: 3, 48: 5, 49: 5
+            };
+            if (progressMap[day]) addProgress(progressMap[day]);
+            if (day === 50) {
+                annaProgress = 100;
+                updateProgressUI();
+            }
+            buildCalendar();
+        }
+
+        function nextDay() {
+            if (currentDay < 50) {
+                currentDay++;
+                loadDay(currentDay);
+            } else {
+                alert("🎉 История завершена! Анна вернулась, Пьер счастлив. Спасибо за прохождение.");
+            }
+        }
+
+        function buildCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 50; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = `day-card ${i <= currentDay ? 'unlocked' : 'locked'}`;
+                if (i === currentDay) dayDiv.classList.add('today');
+                dayDiv.innerHTML = `<div class="day-number">День ${i}</div>`;
+                dayDiv.onclick = () => {
+                    if (i <= currentDay) loadDay(i);
+                    else alert(`🔒 День ${i} ещё не наступил. Пройдите предыдущие дни.`);
+                };
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        buildCalendar();
+        loadDay(1);
+        document.getElementById('nextDayBtn').addEventListener('click', nextDay);
+    })();
+</script>
+</body>
+</html>

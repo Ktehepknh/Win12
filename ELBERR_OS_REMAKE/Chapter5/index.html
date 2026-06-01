@@ -1,0 +1,631 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ELBERR OS: ГЛАВА 5 - ВОСКРЕШЕНИЕ</title>
+    <style>
+        :root { 
+            --bg: #050508; 
+            --main: #00ff41; 
+            --thought: #00d0ff; 
+            --harvey: #ffab40; 
+            --arch: #ffffff; 
+            --oliver: #ba68c8; 
+            --danger: #ff4444; 
+            --pierre: #ffd700;
+        }
+        body { 
+            background: var(--bg); 
+            color: #e0e0e0; 
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 1000px; 
+            height: 780px; 
+            border: 2px solid #2a2a2e; 
+            background: #000;
+            padding: 40px; 
+            position: relative; 
+            overflow-y: auto; 
+            border-radius: 15px;
+            box-shadow: 0 0 60px rgba(0,0,0,1); 
+            display: flex; 
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+        
+        /* Логотип (красный, кликабельный) */
+        .logo {
+            color: #ff3333;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: text-shadow 0.3s;
+            white-space: pre;
+            text-shadow: 0 0 10px #ff0000;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            line-height: 1.2;
+            font-family: 'Courier New', monospace;
+        }
+        .logo:hover { text-shadow: 0 0 20px #ff0000; }
+
+        /* Основные экраны */
+        .screen { 
+            display: none; 
+            animation: fadeIn 0.8s forwards; 
+            width: 100%; 
+        }
+        .active { display: block; }
+        
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(-10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        /* Стили персонажей */
+        .char-h { color: var(--harvey); font-weight: bold; }
+        .char-o { color: var(--oliver); font-weight: bold; }
+        .char-a { color: var(--arch); font-weight: bold; text-shadow: 0 0 10px var(--thought); }
+        .char-r { color: var(--main); font-weight: bold; }
+        .char-p { color: var(--pierre); font-weight: bold; }
+
+        /* Табличка мыслей справа */
+        .thought-table {
+            float: right; 
+            width: 300px; 
+            margin: 0 0 20px 25px;
+            background: rgba(0, 208, 255, 0.04); 
+            border: 1px solid rgba(0, 208, 255, 0.4);
+            padding: 15px; 
+            border-radius: 4px; 
+            font-style: italic; 
+            color: var(--thought);
+            font-size: 0.85em; 
+            line-height: 1.5; 
+            box-shadow: -5px 0 15px rgba(0,208,255,0.05);
+            position: relative; 
+            border-left: 4px solid var(--thought);
+        }
+        .thought-header {
+            font-size: 0.7em; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            color: var(--thought); 
+            margin-bottom: 8px; 
+            opacity: 0.8; 
+            font-weight: bold;
+        }
+
+        .system-msg { 
+            background: #111; 
+            border: 1px solid #444; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 5px; 
+            clear: both; 
+        }
+        
+        .btn { 
+            background: transparent; 
+            color: var(--main); 
+            border: 1px solid var(--main); 
+            padding: 15px 25px;
+            margin: 10px 0; 
+            cursor: pointer; 
+            width: 100%; 
+            text-align: left; 
+            font-size: 1.1em; 
+            transition: 0.3s;
+            clear: both;
+            border-radius: 5px;
+        }
+        .btn:hover { 
+            background: rgba(0,255,65,0.1); 
+            box-shadow: 0 0 15px var(--main); 
+            color: white; 
+        }
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        /* Стили для починки */
+        .repair-section {
+            border: 1px solid #333;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #0a0a0a;
+        }
+        
+        .repair-title {
+            color: var(--thought);
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        .repair-progress { 
+            width: 100%; 
+            height: 20px; 
+            border: 1px solid #333; 
+            margin: 15px 0; 
+            background: #111; 
+            clear: both;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill { 
+            width: 0%; 
+            height: 100%; 
+            background: var(--main); 
+            box-shadow: 0 0 10px var(--main); 
+            transition: 0.3s; 
+        }
+        
+        .repair-status {
+            color: #888;
+            font-size: 0.9em;
+            text-align: center;
+            margin: 5px 0;
+        }
+        
+        .glitch-active { 
+            animation: shake 0.2s infinite; 
+            border: 3px solid red !important; 
+        }
+        @keyframes shake { 
+            0% {transform:translate(0)} 
+            25% {transform:translate(-2px,2px)} 
+            50% {transform:translate(2px,-2px)} 
+            100% {transform:translate(0)} 
+        }
+
+        /* Админ-панель */
+        #adminPanel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #111;
+            border: 2px solid #f00;
+            color: #0f0;
+            padding: 15px;
+            z-index: 9999;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 0 20px red;
+            width: 280px;
+            border-radius: 8px;
+        }
+        #adminPanel h4 {
+            margin: 0 0 10px;
+            color: #f00;
+            text-align: center;
+            text-shadow: 0 0 8px #f00;
+        }
+        #adminPanel .btn {
+            width: 100%;
+            margin: 5px 0;
+            border-color: #f00;
+            color: #f00;
+            background: #1a1a1a;
+        }
+        #adminPanel .btn:hover {
+            background: #f00;
+            color: #000;
+        }
+        #adminLogs {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #300;
+            margin: 10px 0;
+            padding: 8px;
+            font-size: 0.8em;
+            color: #f33;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Админ-панель -->
+<div id="adminPanel">
+    <h4>⚡ ADMIN PANEL ⚡</h4>
+    <div id="adminLogs"></div>
+    <button class="btn" id="adminNext">СЛЕДУЮЩИЙ ЭКРАН</button>
+    <button class="btn" id="adminCompleteRepair">ЗАВЕРШИТЬ ВСЮ ПОЧИНКУ</button>
+    <button class="btn" id="adminAddProgress">+25% К ТЕКУЩЕЙ ЧАСТИ</button>
+    <button class="btn" id="adminClose">ЗАКРЫТЬ</button>
+</div>
+
+<div id="game-container">
+    <!-- Красный кликабельный логотип -->
+    <div class="logo" id="logo">
+    _____ _      ____  ______ _____  _____     ____   _____ 
+   |  ___| |    |  _ \|  ____|  __ \|  __ \   / __ \ / ____|
+   | |__ | |    | |_) | |__  | |__) | |__) | | |  | | (___  
+   |  __|| |    |  _ <|  __| |  _  /|  _  /  | |  | |\___ \ 
+   | |___| |____| |_) | |____| | \ \| | \ \  | |__| |____) |
+   |______|______|____/|______|_|  \_\_|  \_\  \____/|_____/ 
+    </div>
+
+    <!-- Экран 1: Подготовка (НОВЫЙ ДИАЛОГ) -->
+    <div id="sc1" class="screen active">
+        <h3 style="text-align:center; color:#555;">[ ДОМ ХАРВИ - УТРО ]</h3>
+        <div class="thought-table">
+            <div class="thought-header">System.Thought_Process</div>
+            После битвы в Бункере Омега прошло три дня. Мы почти не разговаривали. Каждый переживал по-своему.
+        </div>
+        <p><span class="char-h">ХАРВИ:</span> (смотрит в окно) Рейзер... я не спал эти три дня. Всё думал о Пьере. О том, как мы его оставили там.</p>
+        <p><span class="char-r">РЕЙЗЕР:</span> Мы вернём его, папа. Кёрли сказала, что Золотая Флешка у неё. Но сначала... как там Архивариус?</p>
+        <p><span class="char-a">АРХИВАРИУС:</span> (голос из динамиков) Мои системы работают на 40%. Бой с Killer_ARC повредил три ключевых модуля: манипуляторы, процессорный блок и внешний каркас.</p>
+        <p><span class="char-o">ОЛИВЕР:</span> (вбегает) Я нашёл запчасти в подвале! Целый ящик старых деталей с фабрики!</p>
+        <p><span class="char-h">ХАРВИ:</span> (улыбается) Молодец, сынок. Рейзер, пора браться за дело. Нас ждёт долгая починка.</p>
+        <button class="btn" onclick="go(2)">[ ОТПРАВИТЬСЯ В МАСТЕРСКУЮ ]</button>
+    </div>
+
+    <!-- Экран 2: Золотая флешка -->
+    <div id="sc2" class="screen">
+        <div class="thought-table">
+            <div class="thought-header">System.Thought_Process</div>
+            Флешка — это не просто память. Это оружие против 1006. Правда, которую Харви Людвиг прятал 50 лет.
+        </div>
+        <p><span class="char-h">ХАРВИ:</span> (достаёт флешку) Вот она. Золотая Флешка. Здесь всё: отчёты, чертежи, голоса... даже запись последнего разговора со Стивом.</p>
+        <p><span class="char-r">РЕЙЗЕР:</span> Стив... тот самый, что погиб в 75-м?</p>
+        <p><span class="char-h">ХАРВИ:</span> Да. Он знал правду о Прототипе 1006. Знал и молчал, чтобы защитить нас. Теперь его голос поможет нам спасти Пьера.</p>
+        <p><span class="char-a">АРХИВАРИУС:</span> (слабо) Я... я чувствую знакомые сигнатуры. Пьер действительно внутри системы. Его код разорван на четыре части.</p>
+        <p><span class="char-o">ОЛИВЕР:</span> Мы соберём его! Как пазл!</p>
+        <button class="btn" onclick="go(3)">[ ВОЙТИ В МАСТЕРСКУЮ ]</button>
+    </div>
+
+    <!-- Экран 3: Мастерская - начало починки -->
+    <div id="sc3" class="screen">
+        <h2>[ МАСТЕРСКАЯ - ПЕРВЫЙ ЭТАП ]</h2>
+        <div class="thought-table">
+            <div class="thought-header">System.Thought_Process</div>
+            Архивариус лежит на платформе. Из разорванных кабелей сыплются искры. Начинаем с самого важного.
+        </div>
+        <p><span class="char-h">ХАРВИ:</span> (осматривает повреждения) Плохо. Руки почти оторваны, электроника прогорела, корпус деформирован. Если мы не починим его за сегодня... он может отключиться навсегда.</p>
+        <p><span class="char-r">РЕЙЗЕР:</span> Тогда не будем терять время. С чего начнём?</p>
+        <p><span class="char-h">ХАРВИ:</span> С рук. Без них он даже не сможет держать паяльник. Бери инструменты.</p>
+        <button class="btn" onclick="startRepair()">[ НАЧАТЬ ПОЧИНКУ ]</button>
+    </div>
+
+    <!-- Экран 4: Починка рук -->
+    <div id="sc4" class="screen">
+        <h2>[ ЭТАП 1: РЕМОНТ МАНИПУЛЯТОРОВ ]</h2>
+        <div class="thought-table">
+            <div class="thought-header">System.Thought_Process</div>
+            Пальцы Архивариуса едва шевелятся. Нужно заменить сервоприводы и восстановить сенсоры.
+        </div>
+        
+        <div class="repair-section">
+            <div class="repair-title">🔧 РЕМОНТ РУК (0/100%)</div>
+            <div class="repair-progress"><div id="handsBar" class="progress-fill" style="width:0%"></div></div>
+            <p class="repair-status" id="handsStatus">Требуется: замена 4 сервоприводов</p>
+            <button class="btn" onclick="repairHands()" id="handsBtn">[ ЗАМЕНИТЬ СЕРВОПРИВОД ]</button>
+        </div>
+        
+        <p><span class="char-h">ХАРВИ:</span> (подаёт детали) Держи. Эти приводы я нашёл ещё в 90-х. Должны подойти.</p>
+        <p><span class="char-a">АРХИВАРИУС:</span> (тихо) Я... чувствую ваши прикосновения. Спасибо.</p>
+    </div>
+
+    <!-- Экран 5: Починка электроники -->
+    <div id="sc5" class="screen">
+        <h2>[ ЭТАП 2: ВОССТАНОВЛЕНИЕ ЭЛЕКТРОНИКИ ]</h2>
+        <div class="thought-table">
+            <div class="thought-header">System.Thought_Process</div>
+            Процессорный блок пострадал от скачка напряжения. Нужно заменить микросхемы и прошить заново.
+        </div>
+        
+        <div class="repair-section">
+            <div class="repair-title">🔧 РЕМОНТ ЭЛЕКТРОНИКИ (0/100%)</div>
+            <div class="repair-progress"><div id="electronicsBar" class="progress-fill" style="width:0%"></div></div>
+            <p class="repair-status" id="electronicsStatus">Требуется: замена 4 микросхем</p>
+            <button class="btn" onclick="repairElectronics()" id="electronicsBtn">[ ЗАМЕНИТЬ МИКРОСХЕМЫ ]</button>
+        </div>
+        
+        <p><span class="char-r">РЕЙЗЕР:</span> (разглядывая плату) Здесь всё почернело... Оливер, подай новый процессор!</p>
+        <p><span class="char-o">ОЛИВЕР:</span> (протягивает) Держи! Я уже разместил все контакты, как ты учил.</p>
+    </div>
+
+    <!-- Экран 6: Починка корпуса -->
+    <div id="sc6" class="screen">
+        <h2>[ ЭТАП 3: ВОССТАНОВЛЕНИЕ КОРПУСА ]</h2>
+        <div class="thought-table">
+            <div class="thought-header">System.Thought_Process</div>
+            Внешний каркас погнут и пробит. Без защиты внутренние модули быстро выйдут из строя.
+        </div>
+        
+        <div class="repair-section">
+            <div class="repair-title">🔧 РЕМОНТ КОРПУСА (0/100%)</div>
+            <div class="repair-progress"><div id="bodyBar" class="progress-fill" style="width:0%"></div></div>
+            <p class="repair-status" id="bodyStatus">Требуется: выпрямить 4 деформации</p>
+            <button class="btn" onclick="repairBody()" id="bodyBtn">[ ВЫПРЯМИТЬ ПОВРЕЖДЕНИЯ ]</button>
+        </div>
+        
+        <p><span class="char-h">ХАРВИ:</span> (стучит по металлу) Здесь нужно варить заново. Рейзер, держи сварочный аппарат.</p>
+        <p><span class="char-a">АРХИВАРИУС:</span> (голос становится чётче) Я... начинаю чувствовать своё тело.</p>
+    </div>
+
+    <!-- Экран 7: Финальная сборка -->
+    <div id="sc7" class="screen">
+        <h2>[ ЭТАП 4: ФИНАЛЬНАЯ СБОРКА ]</h2>
+        <div class="thought-table">
+            <div class="thought-header">System.Thought_Process</div>
+            Все модули восстановлены. Осталось подать питание и запустить диагностику.
+        </div>
+        
+        <p><span class="char-h">ХАРВИ:</span> (вытирает пот) Готово. Руки работают, электроника стабильна, корпус держит. Осталось только... включить.</p>
+        <p><span class="char-r">РЕЙЗЕР:</span> Архивариус, ты как?</p>
+        <p><span class="char-a">АРХИВАРИУС:</span> (уверенно) Я... я в порядке. Спасибо вам. Я слышу каждое слово. Каждое биение ваших сердец.</p>
+        <p><span class="char-o">ОЛИВЕР:</span> (обнимает металлическую ногу) Ура! Мы починили его!</p>
+        <p><span class="char-h">ХАРВИ:</span> (кладёт руку на плечо Рейзера) Мы справились. Теперь пора за Пьером.</p>
+        <button class="btn" onclick="go(8)">[ ОТПРАВИТЬСЯ К ЯДРУ КЁРЛИ ]</button>
+    </div>
+
+    <!-- Экран 8: Ядро Кёрли -->
+    <div id="sc8" class="screen">
+        <h2>[ ЯДРО КЁРЛИ - ВОСКРЕШЕНИЕ ]</h2>
+        <div class="thought-table">
+            <div class="thought-header">System.Thought_Process</div>
+            Синхронизация фрагментов... 1975.. 1980.. 2001.. 2012.. Кёрли, ты больше не одна. Он вернулся.
+        </div>
+        <p>Рейзер вставляет кабель в ядро Кёрли. Весь цех дрожит, фрагменты Пьера соединяются.</p>
+        <div class="system-msg">ЗАГРУЗКА ЛЕЙТА ПЬЕРА... 25%... 50%... 75%... 100%.</div>
+        <p><span class="char-p">ГОЛОС ПЬЕРА:</span> (из динамиков) Кёрли... Харви... я слышу вас. Я... я помню.</p>
+        <p><span class="char-p">ПЬЕР (в теле Кёрли):</span> (открывает глаза, они светятся золотым) Я вернулся. Спасибо вам.</p>
+        <p><span class="char-h">ХАРВИ:</span> (смахивает слезу) Добро пожаловать домой, старый друг.</p>
+        <button class="btn" onclick="go(9)">[ ВЕРНУТЬСЯ ДОМОЙ ]</button>
+    </div>
+
+    <!-- Экран 9: Финал (НОВЫЙ ДИАЛОГ) -->
+    <div id="sc9" class="screen">
+        <h2 style="text-align:center; color:var(--pierre);">[ ТЕПЛО РОДНОГО ДОМА ]</h2>
+        <div class="thought-table">
+            <div class="thought-header">System.Thought_Process</div>
+            Вечер. Камин. Пять чашек какао на столе. Мы снова вместе.
+        </div>
+        <p><span class="char-p">ПЬЕР:</span> (в теле Кёрли, улыбается) Знаете, я был везде. В каждом бите, в каждой ошибке системы. Я слышал, как вы искали меня все эти годы.</p>
+        <p><span class="char-h">ХАРВИ:</span> Мы не могли оставить тебя там. Никогда.</p>
+        <p><span class="char-o">ОЛИВЕР:</span> Пьер, а расскажи про 1975-й! Каким ты был тогда?</p>
+        <p><span class="char-p">ПЬЕР:</span> (смеётся) Молодым, глупым и влюблённым в Кёрли. Всё как сейчас, только без седых волос.</p>
+        <p><span class="char-a">АРХИВАРИУС:</span> (поднимает чашку) За нас. За семью, которую мы собрали заново.</p>
+        <p><span class="char-r">РЕЙЗЕР:</span> За тех, кто ещё вернётся.</p>
+        <p>Все поднимают чашки. За окном тихо падает снег.</p>
+        
+        <br><br>
+        <h1 style="text-align:center; color:var(--main); letter-spacing:8px; text-shadow: 0 0 15px var(--main);">КОНЕЦ 5 ГЛАВЫ</h1>
+        <p style="text-align:center; color:#555; font-style:italic;">"Даже в самом тёмном коде всегда найдётся место для света."</p>
+        <button class="btn" style="text-align:center;" onclick="triggerSawyer()">[ ??? ]</button>
+    </div>
+</div>
+
+<script>
+    // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----------
+    let repairProgress = {
+        hands: 0,
+        electronics: 0,
+        body: 0
+    };
+    
+    let currentScreen = 1;
+    const totalScreens = 9;
+    
+    // Для админ-панели
+    let panelVisible = false;
+    const panel = document.getElementById('adminPanel');
+    const logo = document.getElementById('logo');
+    const adminLogs = document.getElementById('adminLogs');
+    const container = document.getElementById('game-container');
+
+    // ---------- ФУНКЦИИ ПЕРЕХОДА ----------
+    function go(n) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('sc' + n).classList.add('active');
+        currentScreen = n;
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---------- ФУНКЦИИ ПОЧИНКИ ----------
+    function startRepair() {
+        go(4); // начинаем с рук
+    }
+    
+    function repairHands() {
+        if (repairProgress.hands < 100) {
+            repairProgress.hands += 25;
+            document.getElementById('handsBar').style.width = repairProgress.hands + '%';
+            
+            // Обновляем статус
+            let remaining = 4 - (repairProgress.hands / 25);
+            document.getElementById('handsStatus').innerText = `Осталось заменить: ${remaining} сервоприводов`;
+            
+            if (repairProgress.hands >= 100) {
+                document.getElementById('handsBtn').disabled = true;
+                document.getElementById('handsBtn').style.opacity = '0.5';
+                
+                // Диалог после завершения рук
+                showHandsCompleteMessage();
+            }
+        }
+    }
+    
+    function showHandsCompleteMessage() {
+        // Добавляем сообщение в экран 4
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'system-msg';
+        msgDiv.style.marginTop = '20px';
+        msgDiv.innerHTML = '<span style="color:lime;">✔ РУКИ ВОССТАНОВЛЕНЫ. ПЕРЕХОДИМ К ЭЛЕКТРОНИКЕ.</span>';
+        document.getElementById('sc4').appendChild(msgDiv);
+        
+        // Активируем кнопку перехода к следующему этапу
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'btn';
+        nextBtn.innerText = '[ ПЕРЕЙТИ К ЭЛЕКТРОНИКЕ ]';
+        nextBtn.onclick = () => go(5);
+        document.getElementById('sc4').appendChild(nextBtn);
+    }
+    
+    function repairElectronics() {
+        if (repairProgress.electronics < 100) {
+            repairProgress.electronics += 25;
+            document.getElementById('electronicsBar').style.width = repairProgress.electronics + '%';
+            
+            let remaining = 4 - (repairProgress.electronics / 25);
+            document.getElementById('electronicsStatus').innerText = `Осталось заменить: ${remaining} микросхем`;
+            
+            if (repairProgress.electronics >= 100) {
+                document.getElementById('electronicsBtn').disabled = true;
+                document.getElementById('electronicsBtn').style.opacity = '0.5';
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'system-msg';
+                msgDiv.style.marginTop = '20px';
+                msgDiv.innerHTML = '<span style="color:lime;">✔ ЭЛЕКТРОНИКА ВОССТАНОВЛЕНА. ПЕРЕХОДИМ К КОРПУСУ.</span>';
+                document.getElementById('sc5').appendChild(msgDiv);
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'btn';
+                nextBtn.innerText = '[ ПЕРЕЙТИ К КОРПУСУ ]';
+                nextBtn.onclick = () => go(6);
+                document.getElementById('sc5').appendChild(nextBtn);
+            }
+        }
+    }
+    
+    function repairBody() {
+        if (repairProgress.body < 100) {
+            repairProgress.body += 25;
+            document.getElementById('bodyBar').style.width = repairProgress.body + '%';
+            
+            let remaining = 4 - (repairProgress.body / 25);
+            document.getElementById('bodyStatus').innerText = `Осталось выпрямить: ${remaining} деформаций`;
+            
+            if (repairProgress.body >= 100) {
+                document.getElementById('bodyBtn').disabled = true;
+                document.getElementById('bodyBtn').style.opacity = '0.5';
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'system-msg';
+                msgDiv.style.marginTop = '20px';
+                msgDiv.innerHTML = '<span style="color:lime;">✔ КОРПУС ВОССТАНОВЛЕН. ПЕРЕХОДИМ К ФИНАЛЬНОЙ СБОРКЕ.</span>';
+                document.getElementById('sc6').appendChild(msgDiv);
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'btn';
+                nextBtn.innerText = '[ ПЕРЕЙТИ К ФИНАЛЬНОЙ СБОРКЕ ]';
+                nextBtn.onclick = () => go(7);
+                document.getElementById('sc6').appendChild(nextBtn);
+            }
+        }
+    }
+
+    // ---------- ТИЗЕР НА ГЛАВУ 6 ----------
+    function triggerSawyer() {
+        document.getElementById('game-container').classList.add('glitch-active');
+        
+        document.getElementById('game-container').innerHTML = `
+            <div class="system-msg" style="border: 2px solid red; background: #200; color: white; text-align:center;">
+                <h2 style="color:red;">[ ВХОДЯЩИЙ СИГНАЛ: ХАРВИ СОУЕР ]</h2>
+                <p style="font-size:1.4em;">"Харви... Я жду тебя в Бункере-2. Приходи домой, оригинал."</p>
+            </div>
+            <div class="thought-table" style="float:none; width:100%; border-color:red; color:red; margin-left:0;">
+                <div class="thought-header" style="color:red;">DANGER.DETECTED</div>
+                ЛИЧНОСТЬ "ХАРВИ СОУЕР" — ЭТО ЦИФРОВАЯ МАСКА ПРОТОТИПА 1006. ГЛАВА 6 БУДЕТ БИТВОЙ ЗА РАЗУМ.
+            </div>
+            <button class="btn" style="margin-top:30px;" onclick="location.reload()">[ ПЕРЕЗАГРУЗИТЬ ГЛАВУ 5 ]</button>
+        `;
+    }
+
+    // ---------- АДМИН-ПАНЕЛЬ ----------
+    function addAdminLog(msg, color = '#0f0') {
+        adminLogs.innerHTML += `<p style="color:${color};">> ${msg}</p>`;
+        adminLogs.scrollTop = adminLogs.scrollHeight;
+    }
+
+    logo.addEventListener('click', function(e) {
+        e.stopPropagation();
+        panelVisible = !panelVisible;
+        panel.style.display = panelVisible ? 'block' : 'none';
+        if (panelVisible) {
+            adminLogs.innerHTML = '';
+            addAdminLog('Панель активирована');
+            addAdminLog('Текущий экран: ' + currentScreen);
+        }
+    });
+
+    document.getElementById('adminNext').addEventListener('click', function() {
+        let next = currentScreen + 1;
+        if (next <= totalScreens) {
+            go(next);
+            addAdminLog('Переход к экрану ' + next, '#ff0');
+        } else {
+            addAdminLog('Это последний экран', '#f33');
+        }
+    });
+
+    document.getElementById('adminCompleteRepair').addEventListener('click', function() {
+        // Завершаем все этапы починки
+        repairProgress = { hands: 100, electronics: 100, body: 100 };
+        
+        // Обновляем бары, если мы на соответствующих экранах
+        if (document.getElementById('handsBar')) {
+            document.getElementById('handsBar').style.width = '100%';
+            document.getElementById('handsStatus').innerText = 'Завершено';
+        }
+        if (document.getElementById('electronicsBar')) {
+            document.getElementById('electronicsBar').style.width = '100%';
+            document.getElementById('electronicsStatus').innerText = 'Завершено';
+        }
+        if (document.getElementById('bodyBar')) {
+            document.getElementById('bodyBar').style.width = '100%';
+            document.getElementById('bodyStatus').innerText = 'Завершено';
+        }
+        
+        addAdminLog('Вся починка завершена', 'lime');
+        
+        // Переходим к финальной сборке
+        if (currentScreen >= 4 && currentScreen <= 6) {
+            go(7);
+        }
+    });
+
+    document.getElementById('adminAddProgress').addEventListener('click', function() {
+        if (currentScreen === 4) {
+            repairHands();
+            addAdminLog('+25% к ремонту рук');
+        } else if (currentScreen === 5) {
+            repairElectronics();
+            addAdminLog('+25% к ремонту электроники');
+        } else if (currentScreen === 6) {
+            repairBody();
+            addAdminLog('+25% к ремонту корпуса');
+        } else {
+            addAdminLog('Сейчас нет активного ремонта', '#f33');
+        }
+    });
+
+    document.getElementById('adminClose').addEventListener('click', function() {
+        panelVisible = false;
+        panel.style.display = 'none';
+    });
+
+    // ---------- ИНИЦИАЛИЗАЦИЯ ----------
+    window.onload = function() {
+        go(1);
+    };
+</script>
+</body>
+</html>

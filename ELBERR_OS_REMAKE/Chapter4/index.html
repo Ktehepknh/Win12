@@ -1,0 +1,572 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ELBERR OS - ГЛАВА 4: ПРОТОКОЛ ОМЕГА</title>
+    <style>
+        :root { 
+            --main: #00ff41; 
+            --bg: #000; 
+            --oliver: #8800ff; 
+            --harvey: #ff9800; 
+            --warn: #ff0000;
+            --rail: #00d0ff;
+        }
+        body { 
+            background: var(--bg); 
+            color: var(--main); 
+            font-family: 'Courier New', monospace; 
+            margin: 0; 
+            overflow-x: hidden; 
+        }
+        #monitor { 
+            width: 1000px; 
+            min-height: 98vh; 
+            border: 4px solid #1a1a1a; 
+            background: #000; 
+            padding: 35px; 
+            margin: 10px auto; 
+            box-shadow: inset 0 0 150px rgba(0,255,65,0.1); 
+            position: relative; 
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        
+        /* Персонажи */
+        .char-h { color: var(--harvey); font-weight: bold; text-shadow: 0 0 5px var(--harvey); } 
+        .char-r { color: var(--rail); font-weight: bold; text-shadow: 0 0 5px var(--rail); } 
+        .char-a { color: #ffffff; font-weight: bold; text-shadow: 0 0 8px var(--main); } 
+        .char-o { color: var(--oliver); font-weight: bold; text-shadow: 0 0 10px var(--oliver); }
+        .char-arc { color: #00ff41; font-weight: bold; text-decoration: underline; }
+        .char-k { color: var(--warn); font-weight: bold; background: #300; padding: 0 4px; }
+
+        .log-box { 
+            border-left: 4px solid var(--main); 
+            padding: 20px; 
+            background: rgba(0,255,65,0.05); 
+            margin: 20px 0; 
+            border-radius: 0 20px 20px 0; 
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(-10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Эффекты ранения (как в Undertale) */
+        .shake {
+            animation: shake 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        @keyframes shake {
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-10px, 0); }
+            20% { transform: translate(10px, 0); }
+            30% { transform: translate(-8px, 0); }
+            40% { transform: translate(8px, 0); }
+            50% { transform: translate(-6px, 0); }
+            60% { transform: translate(6px, 0); }
+            70% { transform: translate(-4px, 0); }
+            80% { transform: translate(4px, 0); }
+            90% { transform: translate(-2px, 0); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .red-flash {
+            animation: redFlash 0.3s ease-out;
+        }
+        @keyframes redFlash {
+            0% { background-color: rgba(255, 0, 0, 0); }
+            20% { background-color: rgba(255, 0, 0, 0.8); }
+            100% { background-color: rgba(255, 0, 0, 0); }
+        }
+
+        .btn { 
+            background: #050505; 
+            color: var(--main); 
+            border: 2px solid var(--main); 
+            padding: 15px; 
+            cursor: pointer; 
+            margin: 10px 0; 
+            width: 100%; 
+            text-align: left; 
+            font-family: inherit; 
+            transition: 0.3s; 
+            border-radius: 5px;
+        }
+        .btn:hover { 
+            background: var(--main); 
+            color: #000; 
+            box-shadow: 0 0 25px var(--main); 
+        }
+        
+        .game-zone { 
+            background: #0a0a0a; 
+            padding: 20px; 
+            border: 2px dashed var(--main); 
+            margin: 20px 0; 
+            text-align: center; 
+            border-radius: 10px;
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 80px); 
+            gap: 10px; 
+            justify-content: center; 
+            margin: 20px auto; 
+        }
+        .cell { 
+            width: 80px; 
+            height: 80px; 
+            border: 2px solid #333; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 24px;
+            background: #111;
+            transition: 0.2s;
+            border-radius: 5px;
+        }
+        .cell.active { 
+            background: var(--main); 
+            color: #000; 
+            border-color: #fff;
+            box-shadow: 0 0 15px var(--main);
+        }
+        .cell.hit { 
+            background: var(--warn); 
+            color: white; 
+            border-color: #ff8888;
+            box-shadow: 0 0 15px var(--warn);
+        }
+
+        .hp-bar { 
+            width: 100%; 
+            height: 20px; 
+            background: #222; 
+            margin: 10px 0; 
+            border: 1px solid var(--main); 
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .hp-fill { 
+            height: 100%; 
+            background: var(--main); 
+            transition: 0.3s;
+            box-shadow: 0 0 10px var(--main);
+        }
+
+        /* Логотип (красный, кликабельный) */
+        .logo {
+            color: #ff3333;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: text-shadow 0.3s;
+            white-space: pre;
+            text-shadow: 0 0 10px #ff0000;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            line-height: 1.2;
+        }
+        .logo:hover { text-shadow: 0 0 20px #ff0000; }
+
+        /* Админ-панель */
+        #adminPanel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #111;
+            border: 2px solid #f00;
+            color: #0f0;
+            padding: 15px;
+            z-index: 9999;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 0 20px red;
+            width: 280px;
+            border-radius: 8px;
+        }
+        #adminPanel h4 {
+            margin: 0 0 10px;
+            color: #f00;
+            text-align: center;
+            text-shadow: 0 0 8px #f00;
+        }
+        #adminPanel .btn {
+            width: 100%;
+            margin: 5px 0;
+            border-color: #f00;
+            color: #f00;
+        }
+        #adminPanel .btn:hover {
+            background: #f00;
+            color: #000;
+        }
+        #adminLogs {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #300;
+            margin: 10px 0;
+            padding: 8px;
+            font-size: 0.8em;
+            color: #f33;
+            border-radius: 4px;
+        }
+
+        /* Затемнение для эффекта */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.7);
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Оверлей для красной вспышки -->
+<div id="redOverlay" class="overlay"></div>
+
+<div id="monitor">
+    <!-- Кликабельный красный логотип -->
+    <div class="logo" id="logo">
+    _____ _      ____  ______ _____  _____     ____   _____ 
+   |  ___| |    |  _ \|  ____|  __ \|  __ \   / __ \ / ____|
+   | |__ | |    | |_) | |__  | |__) | |__) | | |  | | (___  
+   |  __|| |    |  _ <|  __| |  _  /|  _  /  | |  | |\___ \ 
+   | |___| |____| |_) | |____| | \ \| | \ \  | |__| |____) |
+   |______|______|____/|______|_|  \_\_|  \_\  \____/|_____/ 
+    </div>
+
+    <!-- Основная сцена будет здесь -->
+    <div id="stage"></div>
+</div>
+
+<!-- Админ-панель -->
+<div id="adminPanel">
+    <h4>⚡ ADMIN PANEL ⚡</h4>
+    <div id="adminLogs"></div>
+    <button class="btn" id="adminSkipBattle">ПРОПУСТИТЬ БОЙ</button>
+    <button class="btn" id="adminSkipRepair">ПРОПУСТИТЬ РЕМОНТ</button>
+    <button class="btn" id="adminShowCode">ПОКАЗАТЬ КОД</button>
+    <button class="btn" id="adminClose">ЗАКРЫТЬ</button>
+</div>
+
+<script>
+    // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----------
+    let bossHP = 100;
+    let sequence = [];
+    let playerPos = 0;
+    let currentBossInterval = null;
+    let currentRepairInterval = null;
+    let currentStage = 'door'; // door, battle, repair, oliver, final
+
+    // Для админ-панели
+    let panelVisible = false;
+    const panel = document.getElementById('adminPanel');
+    const logo = document.getElementById('logo');
+    const adminLogs = document.getElementById('adminLogs');
+    const monitor = document.getElementById('monitor');
+    const redOverlay = document.getElementById('redOverlay');
+
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+    function setStageContent(html) {
+        document.getElementById('stage').innerHTML = html;
+        // Плавный скролл вверх, чтобы было удобно
+        monitor.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function addAdminLog(msg, color = '#0f0') {
+        adminLogs.innerHTML += `<p style="color:${color};">> ${msg}</p>`;
+        adminLogs.scrollTop = adminLogs.scrollHeight;
+    }
+
+    // Эффект ранения (красная вспышка + тряска)
+    function injuryEffect() {
+        // Красная вспышка
+        redOverlay.style.opacity = '0.7';
+        setTimeout(() => {
+            redOverlay.style.opacity = '0';
+        }, 200);
+
+        // Тряска экрана
+        monitor.classList.add('shake');
+        setTimeout(() => {
+            monitor.classList.remove('shake');
+        }, 500);
+    }
+
+    // ---------- ПОЭТАПНЫЕ ДИАЛОГИ ----------
+    function startChapter() {
+        setStageContent(`
+            <div class="log-box">
+                <p><span class="char-h">ХАРВИ:</span> (тяжело дышит) Вот она. Массивная стальная дверь Бункера Омега. С 1975 года здесь никто не проходил.</p>
+                <p><span class="char-a">RAIL:</span> Терминал заблокирован. Он требует мастер-код администратора, который был в твоих старых файлах, Рейзер.</p>
+                <p><span class="char-o">ОЛИВЕР:</span> (голос из динамика двери) Давай, брат... Вводи его. Я жду вас внутри.</p>
+            </div>
+            <button class="btn" onclick="enterCode()">[ВВЕСТИ КОД АДМИНИСТРАТОРА]</button>
+        `);
+        currentStage = 'door';
+    }
+
+    function enterCode() {
+        let val = prompt("ВВЕДИТЕ МАСТЕР-КОД ИЗ 1 ГЛАВЫ:");
+        if(val && val.toUpperCase() === "#(ADMIN)#") {
+            setStageContent(`
+                <div class="log-box">
+                    <p><span style="color:lime;">█ ДОСТУП РАЗРЕШЁН █</span></p>
+                    <p>Двери со скрежетом расходятся. Вы входите в архив. Внезапно старое тело Архивариуса вспыхивает КРАСНЫМ!</p>
+                    <p><span class="char-k">xELBERRx:</span> ВЫ ПРИШЛИ УМЕРЕТЬ ТАМ, ГДЕ ВСЁ НАЧАЛОСЬ!</p>
+                </div>
+                <button class="btn" onclick="startBattle()">[ВСТУПИТЬ В БОЙ]</button>
+            `);
+            currentStage = 'battleIntro';
+        } else {
+            alert("❌ ОТКАЗАНО В ДОСТУПЕ. КОД ИЗ 1 ГЛАВЫ НЕВЕРЕН.");
+        }
+    }
+
+    // ---------- БИТВА ----------
+    function startBattle() {
+        currentStage = 'battle';
+        setStageContent(`
+            <div class="log-box">
+                <p class="char-h">БЕЙТЕ ПО УЗЛАМ ЕГО ПИТАНИЯ (КРАСНЫЕ КЛЕТКИ), ПОКА ОН НЕ УНИЧТОЖИЛ НАС!</p>
+            </div>
+            <div class="game-zone">
+                <p>ЗДОРОВЬЕ ВИРУСА:</p>
+                <div class="hp-bar"><div id="hp" class="hp-fill" style="width: 100%"></div></div>
+                <div id="grid" class="grid"></div>
+            </div>
+        `);
+
+        const grid = document.getElementById('grid');
+        for(let i = 0; i < 9; i++) {
+            let cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.id = 'b-'+i;
+            cell.onclick = () => hitBoss(i);
+            grid.appendChild(cell);
+        }
+
+        bossHP = 100;
+        startBossCycle();
+    }
+
+    function startBossCycle() {
+        if (currentBossInterval) clearInterval(currentBossInterval);
+        if (bossHP <= 0) return;
+
+        currentBossInterval = setInterval(() => {
+            if (bossHP <= 0) {
+                clearInterval(currentBossInterval);
+                return;
+            }
+            let target = Math.floor(Math.random() * 9);
+            let cell = document.getElementById('b-'+target);
+            if (cell) {
+                cell.classList.add('hit');
+                setTimeout(() => {
+                    if (cell) cell.classList.remove('hit');
+                }, 800);
+            }
+        }, 1000);
+    }
+
+    function hitBoss(id) {
+        let cell = document.getElementById('b-'+id);
+        if (cell && cell.classList.contains('hit')) {
+            bossHP -= 20;
+            document.getElementById('hp').style.width = bossHP + "%";
+            cell.classList.remove('hit');
+            if (bossHP <= 0) {
+                clearInterval(currentBossInterval);
+                sceneTragedy();
+            }
+        }
+    }
+
+    // ---------- ТРАГЕДИЯ (РАНЕНИЕ RAIL) ----------
+    function sceneTragedy() {
+        currentStage = 'tragedy';
+        // Эффект ранения
+        injuryEffect();
+
+        setStageContent(`
+            <div class="log-box" style="border-color:red; background:rgba(255,0,0,0.1);">
+                <p>Вирус изгнан! Архивариус замирает, но в последнюю секунду xELBERRx делает рывок и <b style="color:red;">ОТРЫВАЕТ РУКУ RAIL</b>!</p>
+                <p style="font-size:1.5em; color:red; text-align:center;">⚡ КРИТИЧЕСКОЕ ПОВРЕЖДЕНИЕ ⚡</p>
+                <p><span class="char-a">RAIL:</span> (искажённо) АААРГХ! МОЙ МАНИПУЛЯТОР! ПАПА, МНЕ БОЛЬНО!</p>
+                <p><span class="char-h">ХАРВИ:</span> БЫСТРЕЕ В МАСТЕРСКУЮ! МЫ ЕГО НЕ ПОТЕРЯЕМ!</p>
+            </div>
+            <button class="btn" onclick="startRepair()">[ПОЧИНИТЬ RAIL В МАСТЕРСКОЙ]</button>
+        `);
+    }
+
+    // ---------- РЕМОНТ ----------
+    function startRepair() {
+        currentStage = 'repair';
+        setStageContent(`
+            <div class="game-zone">
+                <h3>🔧 МАСТЕРСКАЯ: УПРОЩЁННЫЙ РЕМОНТ РУКИ</h3>
+                <p>Повторите последовательность из 5 вспышек, чтобы приварить деталь:</p>
+                <div id="grid" class="grid"></div>
+                <button class="btn" onclick="playRepair()" id="rep-btn" style="text-align:center">НАЧАТЬ ТЕСТ</button>
+            </div>
+        `);
+
+        const grid = document.getElementById('grid');
+        for(let i = 0; i < 9; i++) {
+            let cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.id = 'r-'+i;
+            cell.onclick = () => checkRepair(i);
+            grid.appendChild(cell);
+        }
+    }
+
+    function playRepair() {
+        sequence = Array.from({length: 5}, () => Math.floor(Math.random() * 9));
+        playerPos = 0;
+        let i = 0;
+        if (currentRepairInterval) clearInterval(currentRepairInterval);
+        currentRepairInterval = setInterval(() => {
+            if (i >= sequence.length) {
+                clearInterval(currentRepairInterval);
+                return;
+            }
+            let c = document.getElementById('r-'+sequence[i]);
+            if (c) {
+                c.classList.add('active');
+                setTimeout(() => {
+                    if (c) c.classList.remove('active');
+                }, 400);
+            }
+            i++;
+        }, 700);
+    }
+
+    function checkRepair(id) {
+        if (id === sequence[playerPos]) {
+            playerPos++;
+            if (playerPos === sequence.length) {
+                clearInterval(currentRepairInterval);
+                sceneOliver();
+            }
+        } else {
+            alert("❌ ОШИБКА! НАЧНИТЕ СНАЧАЛА.");
+            playRepair();
+        }
+    }
+
+    // ---------- ОЛИВЕР ----------
+    function sceneOliver() {
+        currentStage = 'oliver';
+        setStageContent(`
+            <div class="log-box">
+                <p>Рука RAIL на месте. Теперь главная цель: Оливер. Его код готов к переносу в тело прототипа.</p>
+                <p><span class="char-o">ОЛИВЕР:</span> Рейзер, вводи код из 2 главы, чтобы открыть шлюзы сознания!</p>
+            </div>
+            <input type="text" id="code" placeholder="КОД ИЗ 3 ЧАСТЕЙ" style="background:#000; color:lime; border:1px solid lime; padding:10px; width:100%; font-family:inherit; margin:10px 0;">
+            <button class="btn" onclick="oliverWake()">[АКТИВИРОВАТЬ ОЛИВЕРА]</button>
+        `);
+    }
+
+    function oliverWake() {
+        const code = document.getElementById('code').value.toUpperCase();
+        if (code === "#KILL_VIRUS_98#") {
+            setStageContent(`
+                <div class="log-box">
+                    <p>Оливер открывает глаза. Он жив! Но из серверной выходит <b style="color:red;">Killer_ARC</b>!</p>
+                    <p><span class="char-k">Killer_ARC:</span> ЦЕЛЬ: СЕМЬЯ ХАРВИ. СТАТУС: УНИЧТОЖИТЬ.</p>
+                    <p><span class="char-arc">АРХИВАРИУС:</span> БЕГИТЕ! Я ЗАДЕРЖУ ЕГО! ЭТО МОЙ ГРЕХ!</p>
+                </div>
+                <button class="btn" onclick="finalScene()">[БЕЖАТЬ НА ПОВЕРХНОСТЬ]</button>
+            `);
+            currentStage = 'killer';
+        } else {
+            alert("❌ НЕВЕРНЫЙ КОД");
+        }
+    }
+
+    // ---------- ФИНАЛ С ГОЛОВОЙ ----------
+    function finalScene() {
+        currentStage = 'final';
+        setStageContent(`
+            <div style="padding:20px; border:2px solid white; background:rgba(0,20,0,0.9); border-radius:10px;">
+                <h1 style="text-align:center; color:#ffd700;">ЭПИЛОГ: РАССВЕТ</h1>
+                <div class="log-box" style="border-color:#ffd700;">
+                    <p>Вы выбегаете на поверхность. Солнце медленно поднимается над лесом. Тишина.</p>
+                    <p>Спустя несколько минут из дверей бункера выходит Архивариус. В руке он несёт <b>голову Killer_ARC</b>, которая всё ещё искрит и издаёт помехи.</p>
+                    <p><span class="char-arc">АРХИВАРИУС:</span> (садится рядом) Мы победили. Рейзер, ты спрашивал, зачем я его создал? В 1975-м я был напуган. Killer_ARC был моей "красной кнопкой" — он должен был уничтожить ВМСМ, если проект станет опасным. Злой Архивариус просто разбудил его.</p>
+                    <p><span class="char-k" style="background:transparent; color:#ff6666;">ГОЛОВА KILLER_ARC:</span> (хрипит, искрит) Цель... уничтожить... се... мью... Харви... ты... следующий... *затихает*</p>
+                    <p><span class="char-o">ОЛИВЕР:</span> Папа, посмотри! Солнце! Настоящее!</p>
+                    <p><span class="char-h">ХАРВИ:</span> Да, Оливер. Мы дома. Все вместе.</p>
+                    <hr>
+                    <h2 style="text-align:center; color:var(--main);">КОНЕЦ 4 ГЛАВЫ</h2>
+                    <p style="text-align:center;">Продолжение в Главе 5...</p>
+                </div>
+            </div>
+        `);
+    }
+
+    // ---------- АДМИН-ПАНЕЛЬ ----------
+    logo.addEventListener('click', function(e) {
+        e.stopPropagation();
+        panelVisible = !panelVisible;
+        panel.style.display = panelVisible ? 'block' : 'none';
+        if (panelVisible) {
+            adminLogs.innerHTML = '';
+        }
+    });
+
+    document.getElementById('adminSkipBattle').addEventListener('click', function() {
+        if (currentStage === 'battle') {
+            clearInterval(currentBossInterval);
+            bossHP = 0;
+            sceneTragedy();
+            addAdminLog('Бой пропущен', 'lime');
+        } else {
+            addAdminLog('Сейчас не идёт бой', '#f33');
+        }
+    });
+
+    document.getElementById('adminSkipRepair').addEventListener('click', function() {
+        if (currentStage === 'repair') {
+            clearInterval(currentRepairInterval);
+            sceneOliver();
+            addAdminLog('Ремонт пропущен', 'lime');
+        } else {
+            addAdminLog('Сейчас нет ремонта', '#f33');
+        }
+    });
+
+    document.getElementById('adminShowCode').addEventListener('click', function() {
+        addAdminLog('КОД ДВЕРИ: #(ADMIN)#', '#ff0');
+        addAdminLog('КОД ОЛИВЕРА: #KILL_VIRUS_98#', '#ff0');
+    });
+
+    document.getElementById('adminClose').addEventListener('click', function() {
+        panelVisible = false;
+        panel.style.display = 'none';
+    });
+
+    // ---------- СТАРТ ----------
+    window.onload = function() {
+        startChapter();
+    };
+</script>
+
+</body>
+</html>

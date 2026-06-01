@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slime Clicker 2D | Mark-42 Studio</title>
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+    <style>
+        :root { 
+            --accent: #ffcc00; 
+            --diamond: #00f2ff; 
+            --bg: #0d0d12; 
+            --panel: rgba(25, 25, 35, 0.98); 
+        }
+        
+        * { 
+            touch-action: manipulation; 
+            -webkit-user-select: none; 
+            user-select: none; 
+            box-sizing: border-box; 
+            outline: none; 
+        }
+        
+        body { 
+            margin: 0; 
+            height: 100vh; 
+            display: flex; 
+            background: #000 url('assets/background.jpg') center/cover; 
+            color: white; 
+            font-family: 'Segoe UI', sans-serif; 
+            overflow: hidden; 
+        }
+        
+        /* Адаптация под мобильные (вертикальный режим) */
+        @media (max-aspect-ratio: 1/1) { 
+            body { flex-direction: column; } 
+            #shop-side { width: 100% !important; height: 55% !important; border-left: none !important; border-top: 3px solid var(--accent); } 
+            #game-side { height: 45%; } 
+        }
+
+        #game-side { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+        }
+        
+        #ui-hud { 
+            background: rgba(0,0,0,0.8); 
+            padding: 15px 30px; 
+            border-radius: 25px; 
+            border: 2px solid var(--accent); 
+            text-align: center; 
+            z-index: 10; 
+        }
+        
+        .currency-box { 
+            display: flex; 
+            justify-content: center; 
+            gap: 20px; 
+            font-weight: bold; 
+            font-size: 1.6rem; 
+            margin: 5px 0; 
+        }
+        /* Иконки валют в балике */
+        .currency-box img { width: 30px; height: 30px; vertical-align: middle; }
+
+        /* Главный слайм */
+        #main-slime { 
+            width: 180px; 
+            height: 180px;
+            cursor: pointer; 
+            transition: transform 0.05s; 
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); 
+            object-fit: contain;
+        }
+        #main-slime:active { transform: scale(0.9); }
+
+        /* Боковая панель магазина */
+        #shop-side { 
+            width: 440px; 
+            background: var(--panel); 
+            border-left: 3px solid var(--accent); 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        .tabs { display: flex; background: #000; height: 60px; }
+        .tab-btn { 
+            flex: 1; 
+            border: none; 
+            background: none; 
+            color: #555; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 0.8rem; 
+            text-transform: uppercase; 
+        }
+        .tab-btn.active { 
+            color: var(--accent); 
+            border-bottom: 4px solid var(--accent); 
+            background: rgba(255,204,0,0.1); 
+        }
+        
+        .panel { flex: 1; overflow-y: auto; padding: 15px; display: none; }
+        .panel.active { display: block; }
+        
+        /* Карточка товара в магазине */
+        .item-card { 
+            background: rgba(255,255,255,0.05); 
+            margin-bottom: 10px; 
+            padding: 12px; 
+            border-radius: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border: 1px solid #333; 
+        }
+        
+        /* Кнопки покупки */
+        .buy-btn { 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            transition: 0.2s; 
+            font-size: 1rem;
+        }
+        /* Иконки КАРТИНКИ внутри кнопок (Новое!) */
+        .buy-btn img { width: 20px; height: 20px; }
+        
+        .btn-coins { background: var(--accent); color: #000; }
+        .btn-diamonds { background: var(--diamond); color: #000; }
+        .buy-btn:disabled { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; }
+
+        /* Модальные окна (Настройки и Админка) */
+        .modal { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.9); 
+            z-index: 1000; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .window { 
+            background: #15151a; 
+            border: 3px solid var(--accent); 
+            border-radius: 20px; 
+            width: 340px; 
+            padding: 30px; 
+            text-align: center; 
+            max-height: 90vh; 
+            overflow-y: auto; 
+        }
+        
+        /* Вылетающий текст клика */
+        .floating-text { 
+            position: absolute; 
+            pointer-events: none; 
+            color: var(--accent); 
+            font-weight: bold; 
+            animation: floatUp 0.8s forwards; 
+            font-size: 1.6rem; 
+            text-shadow: 2px 2px #000; 
+            z-index: 50;
+        }
+        @keyframes floatUp { 0%{opacity:1; transform:translateY(0);} 100%{opacity:0; transform:translateY(-120px);} }
+
+        /* Окно туториала */
+        #tutorial { 
+            position: fixed; 
+            bottom: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 90%; 
+            max-width: 500px; 
+            background: #fff; 
+            color: #000; 
+            padding: 20px; 
+            border-radius: 20px; 
+            border: 5px solid var(--accent); 
+            z-index: 2000; 
+            display: none; 
+        }
+        
+        /* Кнопки админа */
+        .admin-btn { background: #ff3333; color: white; border: none; padding: 10px; margin: 5px 0; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
+        input[type="range"] { width: 100%; cursor: pointer; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+    <div id="game-side">
+        <div style="position:absolute; bottom:20px; left:20px; font-size:35px; cursor:pointer; z-index:20;" onclick="toggleSettings()">⚙️</div>
+        
+        <div id="ui-hud">
+            <div onclick="toggleAdmin()" style="font-size:12px; color:var(--accent); font-weight:bold; letter-spacing:2px; cursor:help; margin-bottom:5px;">MARK-42 STUDIO</div>
+            <div class="currency-box">
+                <div><img src="assets/coin.png"> <span id="coins-display">0</span></div>
+                <div style="margin-left:15px;"><img src="assets/diamond.png"> <span id="diamonds-display">0</span></div>
+            </div>
+            <div id="stats-info" style="font-size:11px; color:#888; border-top:1px solid #333; padding-top:5px; margin-top:5px;"></div>
+        </div>
+        
+        <img src="assets/slime1.png" id="main-slime" draggable="false">
+    </div>
+
+    <div id="shop-side">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('upgrades', this)">МАГАЗИН</button>
+            <button class="tab-btn" onclick="showTab('boosts', this)">БУСТЫ</button>
+            <button class="tab-btn" onclick="showTab('slimes', this)">СЛАЙМЫ</button>
+            <button class="tab-btn" onclick="showTab('quests', this)">КВЕСТЫ</button>
+        </div>
+        
+        <div id="upgrades" class="panel active"></div>
+        <div id="boosts" class="panel"><div id="boosts-list"></div></div>
+        <div id="slimes" class="panel"></div>
+        <div id="quests" class="panel">
+            <div class="item-card" style="flex-direction: column; background: rgba(150,255,150,0.05); border-color: #5f5;">
+                <b style="color: #5f5;">ВВЕСТИ КОД:</b>
+                <div style="display:flex; gap:10px; width:100%; margin-top:10px;">
+                    <input type="text" id="promo-input" style="flex:1; padding:10px; border-radius:8px; border:1px solid #5f5; background:#000; color:#fff;" placeholder="...">
+                    <button class="buy-btn btn-coins" style="background:#5f5;" onclick="useCode()">OK</button>
+                </div>
+            </div>
+            <div id="quests-list"></div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="window">
+            <h2 style="color:var(--accent); margin-top:0;">НАСТРОЙКИ</h2>
+            <div style="text-align:left; margin-bottom:20px; border:1px solid #333; padding:15px; border-radius:10px;">
+                <label style="font-size:12px; color:#aaa;">ГРОМКОСТЬ МУЗЫКИ:</label>
+                <input type="range" id="vol-music" min="0" max="1" step="0.1" value="0.4" onchange="updateVolume()">
+                <label style="font-size:12px; color:#aaa;">ГРОМКОСТЬ ЗВУКОВ:</label>
+                <input type="range" id="vol-sfx" min="0" max="1" step="0.1" value="1" onchange="updateVolume()">
+            </div>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <button class="buy-btn btn-coins" style="flex:1; justify-content:center" onclick="setLanguage('ru')">RU</button>
+                <button class="buy-btn btn-coins" style="flex:1; justify-content:center" onclick="setLanguage('en')">EN</button>
+            </div>
+            <button class="buy-btn" style="background:#ff4444; color:#fff; width:100%; justify-content:center" onclick="resetGame()">СБРОС ПРОГРЕССА</button>
+            <button class="buy-btn btn-coins" style="width:100%; margin-top:15px; justify-content:center; background:#fff;" onclick="toggleSettings()">ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="admin-modal" class="modal">
+        <div class="window" style="border-color: #ff3333; background: #200;">
+            <h2 style="color:#ff3333; margin-top:0;">👑 ADMIN PANEL</h2>
+            <p style="font-size:10px; color:#aaa; margin-bottom:15px;">Только для Льва (Mark-42)</p>
+            <button class="admin-btn" onclick="adminEdit('coins')">1. Редактор монет</button>
+            <button class="admin-btn" onclick="adminEdit('diamonds')">2. Редактор алмазов</button>
+            <button class="admin-btn" onclick="adminEdit('mult')">3. Редактор множителя</button>
+            <button class="admin-btn" onclick="adminShowSave()">4. Просмотр сохранений</button>
+            <button class="admin-btn" onclick="adminUnlockSlimes()">5. Открыть всех слаймов</button>
+            <button class="buy-btn btn-coins" style="width:100%; margin-top:20px; justify-content:center; background:#ff3333; color:#fff;" onclick="toggleAdmin()">ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="tutorial">
+        <img src="assets/viktor.png" style="width:65px; height:65px; float:left; margin-right:15px; object-fit:contain;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1041/1041916.png'">
+        <b style="color:#d4a017">Виктор / Viktor</b>
+        <p id="tut-text" style="margin:10px 0; font-size:14px; min-height:40px;"></p>
+        <button class="buy-btn btn-coins" style="float:right" onclick="nextTutorialStep()">ДАЛЕЕ</button>
+    </div>
+
+    <script>
+        // --- ЗВУКОВАЯ СИСТЕМА ---
+        const sfx = {
+            click: new Audio('assets/click.mp3'),
+            buy: new Audio('assets/buy.mp3'),
+            bg: new Audio('assets/music.mp3')
+        };
+        sfx.bg.loop = true;
+
+        function updateVolume() {
+            // Применяем громкость к фоновой музыке
+            sfx.bg.volume = document.getElementById('vol-music').value;
+            saveGame(); // Сохраняем настройки звука
+        }
+
+        function playSfx(name) {
+            try {
+                const sound = sfx[name].cloneNode();
+                // Применяем громкость эффектов при воспроизведении
+                sound.volume = document.getElementById('vol-sfx').value;
+                sound.play().catch(() => {});
+            } catch(e) {}
+        }
+
+        // --- ДАННЫЕ ИГРЫ (Default) ---
+        let gameData = {
+            coins: 0, diamonds: 0, totalEarned: 0,
+            clickPower: 1, autoPower: 0, adminMult: 1,
+            ownedSlimes: [1], currentSlime: 1,
+            upgradeLevels: new Array(16).fill(0),
+            boostsActive: [0, 0, 0],
+            completedQuests: [],
+            tutorialIndex: 0,
+            lang: 'ru',
+            // Сохраняем настройки звука в сейве
+            volMusic: 0.4, volSfx: 1.0
+        };
+
+        // --- ТЕКСТЫ И ЯЗЫКИ ---
+        const translations = {
+            ru: {
+                stats: (c, a, m) => `КЛИК: +${c.toLocaleString()} | АВТО: +${a.toLocaleString()} | МНОЖИТЕЛЬ: x${m.toFixed(2)}`,
+                active: "АКТИВЕН", select: "ВЫБРАТЬ", max: "МАКС",
+                click: "КЛИК", auto: "АВТО", income: "Доход", earn: "Заработать", coinsText: "монет",
+                upgradeNames: ["Мягкое касание", "Слаймо-гель", "Липкая перчатка", "Миска еды", "Вибро-лапа", "Авто-чесалка", "Магнит слизи", "Сборщик капель", "Энерго-сфера", "Слаймо-насос", "Ионный кликер", "Завод Mark-42", "Взрыв", "Черная дыра", "Луч смерти", "Сингулярность"],
+                slimeNames: ["Розовый", "Кошачий", "Каменный", "Светляк", "Медовый", "Водяной", "Бум-слайм", "Охотник", "Радио-слайм", "Кристалл", "Лавовый", "Саблезуб", "Диско-слайм", "Зайчик", "Лужа", "Яичный", "Облачко", "Глич", "Гипер-слайм", "Тень", "Золотой", "Удачливый"],
+                tutorialSteps: ["Привет, Лев! Я Виктор. Помогу тебе развить студию!", "В магазине улучшай силу КЛИКА и АВТО-добычу.", "В БУСТАХ можно купить вечное умножение за алмазы.", "Собери все 22 слайма и стань легендой Mark-42!"]
+            },
+            en: {
+                stats: (c, a, m) => `CLICK: +${c.toLocaleString()} | AUTO: +${a.toLocaleString()} | MULTI: x${m.toFixed(2)}`,
+                active: "ACTIVE", select: "SELECT", max: "MAX",
+                click: "CLICK", auto: "AUTO", income: "Income", earn: "Earn", coinsText: "coins",
+                upgradeNames: ["Soft Touch", "Slime Gel", "Sticky Glove", "Food Bowl", "Vibro Paw", "Auto Scratcher", "Slime Magnet", "Drop Collector", "Energy Sphere", "Slime Pump", "Ionic Clicker", "Mark-42 Plant", "Explosion", "Black Hole", "Death Ray", "Singularity"],
+                slimeNames: ["Pink", "Tabby", "Rock", "Phosphor", "Honey", "Puddle", "Boom", "Hunter", "Rad", "Crystal", "Lava", "Saber", "Disco", "Bunny", "Splash", "Egg", "Cloudy", "Glitch", "Hyper", "Shadow", "Golden", "Lucky"],
+                tutorialSteps: ["Hi Lev! I'm Viktor. Let's grow the studio!", "Upgrade CLICK and AUTO power in the shop.", "Check BOOSTS for permanent income multipliers!", "Collect all 22 slimes to become a Mark-42 legend!"]
+            }
+        };
+
+        // --- ДАННЫЕ УЛУЧШЕНИЙ ---
+        const upgradeData = [
+            { basePrice: 50, power: 1, type: 'click' }, { basePrice: 150, power: 1, type: 'auto' },
+            { basePrice: 800, power: 5, type: 'click' }, { basePrice: 2500, power: 4, type: 'auto' },
+            { basePrice: 15000, power: 40, type: 'click' }, { basePrice: 40000, power: 35, type: 'auto' },
+            { basePrice: 120000, power: 150, type: 'click' }, { basePrice: 300000, power: 250, type: 'auto' },
+            { basePrice: 1000000, power: 1200, type: 'click' }, { basePrice: 3500000, power: 1000, type: 'auto' },
+            { basePrice: 10000000, power: 8000, type: 'click' }, { basePrice: 25000000, power: 7500, type: 'auto' },
+            { basePrice: 150000000, power: 60000, type: 'click' }, { basePrice: 600000000, power: 55000, type: 'auto' },
+            { basePrice: 2000000000, power: 500000, type: 'click' }, { basePrice: 10000000000, power: 450000, type: 'auto' }
+        ];
+
+        // --- РАСЧЕТ ТЕКУЩЕГО МНОЖИТЕЛЯ ---
+        function getMultiplier() {
+            let m = 1 * gameData.adminMult;
+            if (gameData.boostsActive[0]) m *= 2; // Бусты за алмазы
+            if (gameData.boostsActive[1]) m *= 5;
+            if (gameData.boostsActive[2]) m *= 10;
+            
+            // НОВЫЙ БАЛАНС ОТ ЛЬВА: Бонус за коллекцию слаймов (+0.50 за каждого)
+            const slimeBonus = (gameData.ownedSlimes.length * 0.50);
+            m += slimeBonus;
+            
+            return m;
+        }
+
+        // --- ОБНОВЛЕНИЕ ИНТЕРФЕЙСА (Основная функция) ---
+        function refreshUI() {
+            const lang = translations[gameData.lang];
+            
+            // Отображение валют (округляем монеты для красоты)
+            document.getElementById('coins-display').innerText = Math.floor(gameData.coins).toLocaleString();
+            document.getElementById('diamonds-display').innerText = gameData.diamonds.toLocaleString();
+            
+            // Расчет и показ статов (Клик * Мультипликатор)
+            const currentClick = Math.floor(gameData.clickPower * getMultiplier());
+            const currentAuto = Math.floor(gameData.autoPower * getMultiplier());
+            document.getElementById('stats-info').innerText = lang.stats(currentClick, currentAuto, getMultiplier());
+            
+            // Перерисовка активной вкладки
+            if(document.getElementById('upgrades').classList.contains('active')) renderUpgradeList();
+            if(document.getElementById('boosts').classList.contains('active')) renderBoostList();
+            if(document.getElementById('slimes').classList.contains('active')) renderSlimeList();
+            if(document.getElementById('quests').classList.contains('active')) renderQuestList();
+
+            // Проверка туториала
+            if (gameData.tutorialIndex < lang.tutorialSteps.length) {
+                document.getElementById('tutorial').style.display = 'block';
+                document.getElementById('tut-text').innerText = lang.tutorialSteps[gameData.tutorialIndex];
+            } else {
+                document.getElementById('tutorial').style.display = 'none';
+            }
+        }
+
+        // --- РЕНДЕРИНГ СПИСКОВ (Магазин с иконками-картинками) ---
+
+        function renderUpgradeList() {
+            const lang = translations[gameData.lang];
+            let html = '';
+            upgradeData.forEach((upg, i) => {
+                // БАЛАНС: Первые 4 улучшения (индексы 0,1,2,3) не меняют цену (фиксированная)
+                let cost = (i < 4) ? upg.basePrice : Math.floor(upg.basePrice * Math.pow(1.25, gameData.upgradeLevels[i]));
+                
+                html += `
+                <div class="item-card">
+                    <div><b>${lang.upgradeNames[i]}</b><br><small style="color:var(--accent)">${upg.type === 'click' ? lang.click : lang.auto} +${upg.power.toLocaleString()}</small></div>
+                    <button class="buy-btn btn-coins" onclick="buyUpgrade(${i}, ${cost})" ${gameData.coins < cost ? 'disabled' : ''}>
+                        ${cost.toLocaleString()} <img src="assets/coin.png"> </button>
+                </div>`;
+            });
+            document.getElementById('upgrades').innerHTML = html;
+        }
+
+        function renderBoostList() {
+            const lang = translations[gameData.lang];
+            let html = '';
+            const list = [{n: 'x2', p: 100}, {n: 'x5', p: 500}, {n: 'x10', p: 2000}];
+            list.forEach((boost, i) => {
+                let active = gameData.boostsActive[i];
+                html += `
+                <div class="item-card">
+                    <b>${boost.n} ${lang.income}</b>
+                    <button class="buy-btn btn-diamonds" onclick="buyBoost(${i}, ${boost.p})" ${active || gameData.diamonds < boost.p ? 'disabled' : ''}>
+                        ${active ? lang.max : boost.p.toLocaleString() + ' <img src="assets/diamond.png">'}
+                    </button>
+                </div>`;
+            });
+            document.getElementById('boosts-list').innerHTML = html;
+        }
+
+        function renderSlimeList() {
+            const lang = translations[gameData.lang];
+            let html = '';
+            for (let i = 1; i <= 22; i++) {
+                let isRare = i > 15; // Слаймы после 15-го - за алмазы
+                
+                // ЦЕНЫ НА СЛАЙМОВ (БАЛАНС ОТ ЛЬВА)
+                // Второй слайм (i=2) стоит 5,000. Остальные - дороже.
+                let cost;
+                if (i === 1) cost = 0; // Первый бесплатно
+                else if (i === 2) cost = 5000; 
+                else if (isRare) cost = (i - 15) * 150; // Алмазы
+                else cost = i * 8000; // Обычные монеты
+
+                let owned = gameData.ownedSlimes.includes(i);
+                
+                html += `
+                <div class="item-card">
+                    <img src="assets/slime${i}.png" width="45" height="45" style="object-fit:contain;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/822/822143.png'">
+                    <b style="flex:1; margin-left:10px">${lang.slimeNames[i-1]} <br><small style="color:#888">+0.50 Mult</small></b>
+                    <button class="buy-btn ${isRare ? 'btn-diamonds' : 'btn-coins'}" onclick="handleSlimeClick(${i}, ${cost}, ${isRare})" 
+                        ${!owned && (isRare ? gameData.diamonds < cost : gameData.coins < cost) ? 'disabled' : ''}>
+                        ${owned ? (gameData.currentSlime === i ? lang.active : lang.select) : cost.toLocaleString() + (isRare ? ' <img src="assets/diamond.png">' : ' <img src="assets/coin.png">')}
+                    </button>
+                </div>`;
+            }
+            document.getElementById('slimes').innerHTML = html;
+        }
+
+        function renderQuestList() {
+            const lang = translations[gameData.lang];
+            let html = '';
+            // Цели по общему заработку
+            const goals = [10000, 100000, 1000000, 10000000, 100000000, 1000000000];
+            goals.forEach((goal, i) => {
+                let done = gameData.completedQuests.includes(i);
+                let progress = Math.min(100, (gameData.totalEarned / goal) * 100);
+                html += `
+                <div class="item-card" style="flex-direction:column; align-items:flex-start; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                        <b>${lang.earn} ${goal.toLocaleString()} ${lang.coinsText}</b>
+                        <button class="buy-btn btn-diamonds" onclick="claimQuest(${i})" ${progress < 100 || done ? 'disabled' : ''}>
+                            ${done ? '✔' : '+300 <img src="assets/diamond.png">'}
+                        </button>
+                    </div>
+                    <div style="width:100%; height:6px; background:#222; border-radius:3px; overflow:hidden;"><div style="width:${progress}%; height:100%; background:var(--diamond);"></div></div>
+                </div>`;
+            });
+            document.getElementById('quests-list').innerHTML = html;
+        }
+
+        // --- ЛОГИКА ИГРОВЫХ ДЕЙСТВИЙ ---
+
+        // Клик по главному слайму
+        document.getElementById('main-slime').onclick = (e) => {
+            // Запускаем музыку при первом клике (защита браузеров)
+            if (sfx.bg.paused) sfx.bg.play().catch(()=>{});
+            playSfx('click');
+            
+            // Считаем доход (Клик * Множитель)
+            let gain = Math.floor(gameData.clickPower * getMultiplier());
+            gameData.coins += gain; 
+            gameData.totalEarned += gain; // Для квестов
+            
+            // Создаем вылетающий текст +1
+            const float = document.createElement('div');
+            float.className = 'floating-text'; float.innerText = `+${gain.toLocaleString()}`;
+            // Центрируем текст относительно места клика
+            float.style.left = (e.clientX - 20) + 'px'; float.style.top = (e.clientY - 20) + 'px';
+            document.body.appendChild(float);
+            // Удаляем текст через 0.8с (когда кончится анимация)
+            setTimeout(() => float.remove(), 800);
+            
+            refreshUI();
+        };
+
+        // Покупка апгрейда
+        function buyUpgrade(i, cost) {
+            if (gameData.coins >= cost) {
+                playSfx('buy');
+                gameData.coins -= cost;
+                gameData.upgradeLevels[i]++;
+                // Добавляем базовую силу
+                if (upgradeData[i].type === 'click') gameData.clickPower += upgradeData[i].power;
+                else gameData.autoPower += upgradeData[i].power;
+                refreshUI(); saveGame();
+            }
+        }
+
+        // Выбор или покупка слайма
+        function handleSlimeClick(id, cost, isRare) {
+            if (gameData.ownedSlimes.includes(id)) {
+                // Если куплен - выбираем
+                gameData.currentSlime = id;
+                document.getElementById('main-slime').src = `assets/slime${id}.png`;
+                playSfx('click');
+            } else {
+                // Если не куплен - покупаем
+                if (isRare) {
+                    if(gameData.diamonds < cost) return;
+                    gameData.diamonds -= cost;
+                } else {
+                    if(gameData.coins < cost) return;
+                    gameData.coins -= cost;
+                }
+                playSfx('buy');
+                gameData.ownedSlimes.push(id); // Добавляем в коллекцию
+            }
+            refreshUI(); saveGame();
+        }
+
+        // --- СИСТЕМА ПРОМОКОДОВ ---
+        function useCode() {
+            let input = document.getElementById('promo-input').value.trim().toUpperCase();
+            if(!input) return;
+            
+            if(input === "LEVGOD") { 
+                gameData.diamonds += 10000; 
+                alert("Бог Лев активирован! +10,000 💎"); 
+                document.getElementById('promo-input').value = "";
+            } else if(input === "MARK42") { 
+                gameData.coins += 1000000; 
+                alert("Студия Mark-42 дарит 1,000,000 🟡"); 
+                document.getElementById('promo-input').value = "";
+            } else {
+                alert("Неверный код!");
+            }
+            refreshUI(); saveGame();
+        }
+
+        // --- АДМИН ПАНЕЛЬ (Только для разработчика) ---
+        function toggleAdmin() { 
+            let m = document.getElementById('admin-modal'); 
+            m.style.display = (m.style.display === 'flex' ? 'none' : 'flex'); 
+        }
+        
+        // 1, 2, 3 - Редакторы
+        function adminEdit(type) {
+            let promptText = "";
+            if(type === 'coins') promptText = "Установить количество МОНЕТ:";
+            if(type === 'diamonds') promptText = "Установить количество АЛМАЗОВ:";
+            if(type === 'mult') promptText = "Установить БАЗОВЫЙ множитель (число):";
+            
+            let val = parseFloat(prompt(promptText));
+            if (isNaN(val) || val < 0) return;
+            
+            if (type === 'coins') gameData.coins = val;
+            if (type === 'diamonds') gameData.diamonds = val;
+            if (type === 'mult') gameData.adminMult = val;
+            refreshUI(); saveGame();
+        }
+        
+        // 4 - Просмотр сохранений
+        function adminShowSave() {
+            let save = localStorage.getItem('m42_slime_save_v2');
+            if(!save) alert("Сохранений нет.");
+            else alert("Данные сохранения (JSON):\n" + save);
+            console.log(save);
+        }
+        
+        // 5 - Открыть всех слаймов
+        function adminUnlockSlimes() {
+            if(confirm("Открыть все 22 слайма мгновенно?")) {
+                gameData.ownedSlimes = Array.from({length: 22}, (_, i) => i + 1);
+                refreshUI(); saveGame();
+            }
+        }
+
+        // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (Бусты, Квесты, Настройки, Табы) ---
+        function buyBoost(i, cost) {
+            if (gameData.diamonds >= cost && !gameData.boostsActive[i]) {
+                playSfx('buy');
+                gameData.diamonds -= cost;
+                gameData.boostsActive[i] = 1;
+                refreshUI(); saveGame();
+            }
+        }
+
+        function claimQuest(i) { playSfx('buy'); gameData.diamonds += 300; gameData.completedQuests.push(i); refreshUI(); saveGame(); }
+        function nextTutorialStep() { playSfx('click'); gameData.tutorialIndex++; refreshUI(); saveGame(); }
+        function setLanguage(l) { gameData.lang = l; refreshUI(); saveGame(); }
+        function toggleSettings() { 
+            let m = document.getElementById('settings-modal'); 
+            m.style.display = (m.style.display === 'flex' ? 'none' : 'flex'); 
+        }
+        
+        function showTab(id, btn) {
+            // Скрываем все панели, деактивируем все кнопки
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            // Показываем нужную, активируем кнопку
+            document.getElementById(id).classList.add('active'); 
+            btn.classList.add('active');
+            refreshUI(); // Обновляем список в новой вкладке
+        }
+
+        // --- СИСТЕМА СОХРАНЕНИЙ (Local Storage) ---
+        const SAVE_KEY = 'm42_slime_save_v2'; // Новый ключ для версии 2.0
+
+        function saveGame() { 
+            // Обновляем настройки звука в объекте данных перед сохранением
+            gameData.volMusic = document.getElementById('vol-music').value;
+            gameData.volSfx = document.getElementById('vol-sfx').value;
+            localStorage.setItem(SAVE_KEY, JSON.stringify(gameData)); 
+        }
+        
+        function loadGame() {
+            const local = localStorage.getItem(SAVE_KEY);
+            if (local) {
+                try {
+                    // Объединяем дефолтные данные и сейв (чтобы не сломалось при обновлении структуры)
+                    gameData = Object.assign(gameData, JSON.parse(local));
+                } catch(e) { console.error("Ошибка загрузки сейва"); }
+            }
+            
+            // Применяем настройки
+            document.getElementById('main-slime').src = `assets/slime${gameData.currentSlime}.png`;
+            document.getElementById('vol-music').value = gameData.volMusic;
+            document.getElementById('vol-sfx').value = gameData.volSfx;
+            updateVolume();
+            refreshUI();
+        }
+
+        function resetGame() { 
+            if (confirm("ВНИМАНИЕ: Это полностью обнулит твой прогресс (монеты, слаймов, улучшения). Ты уверен, Лев?")) { 
+                localStorage.removeItem(SAVE_KEY); 
+                location.reload(); 
+            } 
+        }
+
+        // --- АВТОКЛИКЕР (Работает каждую секунду) ---
+        setInterval(() => {
+            if (gameData.autoPower > 0) {
+                // Доход = Мощность * Множитель
+                let gain = (gameData.autoPower * getMultiplier());
+                gameData.coins += gain; 
+                gameData.totalEarned += gain;
+                refreshUI();
+                // Автосохранение каждые 10 секунд для надежности
+                if(Math.floor(Date.now()/1000) % 10 === 0) saveGame();
+            }
+        }, 1000);
+
+        // Запуск игры
+        window.onload = loadGame;
+    </script>
+</body>
+</html>

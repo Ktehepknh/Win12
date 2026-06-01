@@ -1,0 +1,1822 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KteOs Pro v5.5</title>
+    <style>
+        :root {
+            --p: #6B5BFF;
+            --b: #0078d4;
+            --g: #4CAF50;
+            --r: #E81123;
+            --y: #FFB900;
+            --bg: #0a0a14;
+            --gl: rgba(16, 16, 28, 0.94);
+            --bl: rgba(255, 255, 255, 0.08);
+            --text: #eee;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font: 12px 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            user-select: none;
+            position: relative;
+        }
+        .wp {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, #0d1b2a 0%, #1b3a4b 50%, #2d6a4f 100%);
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+        }
+        #workArea {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 48px;
+            overflow: hidden;
+            z-index: 1;
+            transition: bottom 0.2s;
+        }
+        #workArea.fullscreen {
+            bottom: 0;
+        }
+        .ds {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+        }
+        .di {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 8px;
+            width: 75px;
+            text-align: center;
+            position: absolute;
+            transition: background 0.1s;
+        }
+        .di:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .di .ic {
+            font-size: 28px;
+            pointer-events: none;
+        }
+        .di .lb {
+            font-size: 10px;
+            color: #ddd;
+            pointer-events: none;
+            word-break: break-word;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+        }
+        .di.dragging {
+            opacity: 0.5;
+            z-index: 1000;
+        }
+        .di.drag-over {
+            background: rgba(107, 91, 255, 0.3);
+            border: 2px dashed var(--p);
+        }
+        .tb {
+            position: fixed;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 1400px;
+            height: 44px;
+            background: var(--gl);
+            border: 1px solid var(--bl);
+            border-radius: 10px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transition: bottom 0.2s;
+        }
+        .tb.hidden {
+            bottom: -60px;
+        }
+        .tb-l,
+        .tb-r {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tb-c {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .bs {
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bs:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .bs svg {
+            width: 14px;
+            height: 14px;
+            fill: #fff;
+        }
+        .ti {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            background: none;
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: 0.1s;
+        }
+        .ti:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .ti.ac {
+            border-bottom: 2px solid var(--p);
+        }
+        .cl {
+            text-align: right;
+            line-height: 1.2;
+            cursor: pointer;
+        }
+        .ct {
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .cd {
+            font-size: 8px;
+            color: #999;
+        }
+        .sm {
+            position: fixed;
+            bottom: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 420px;
+            height: 360px;
+            background: var(--gl);
+            border: 1px solid var(--bl);
+            border-radius: 14px;
+            z-index: 90;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 36px rgba(0, 0, 0, 0.6);
+        }
+        .sm.op {
+            display: flex;
+        }
+        .sm-l {
+            flex: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow-y: auto;
+        }
+        .sm-i {
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.1s;
+            position: relative;
+        }
+        .sm-i:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .sm-i.draggable {
+            cursor: grab;
+        }
+        .sm-i.draggable:active {
+            cursor: grabbing;
+        }
+        .sm-i .del-btn {
+            margin-left: auto;
+            background: var(--r);
+            color: #fff;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 8px;
+            display: none;
+        }
+        .sm-i:hover .del-btn {
+            display: block;
+        }
+        .sm-f {
+            padding: 8px 10px;
+            border-top: 1px solid var(--bl);
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+        }
+        .sm-search {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--bl);
+            border-radius: 18px;
+            margin: 8px;
+            font-size: 10px;
+            color: #999;
+        }
+        .sm-search input {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 10px;
+            outline: none;
+            flex: 1;
+        }
+        .wn {
+            position: absolute;
+            background: #1a1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            z-index: 80;
+            display: none;
+            flex-direction: column;
+            min-width: 300px;
+            min-height: 200px;
+            overflow: hidden;
+            resize: both;
+            max-width: calc(100vw - 20px);
+            max-height: calc(100vh - 70px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        .wn.op {
+            display: flex;
+        }
+        .wn.max {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            border-radius: 0;
+            resize: none;
+        }
+        .wn.pinned {
+            z-index: 999 !important;
+        }
+        .wn-h {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.35);
+            cursor: move;
+            font-size: 11px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--bl);
+        }
+        .wn-t {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+            font-weight: 500;
+        }
+        .wn-ctrls {
+            display: flex;
+            gap: 6px;
+        }
+        .wn-b {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #ccc;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 0;
+            transition: 0.1s;
+        }
+        .wn-b:hover {
+            opacity: 0.8;
+        }
+        .wn-b.cl {
+            background: var(--r);
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .wn-b.mx {
+            background: var(--y);
+        }
+        .wn-b.pin {
+            background: var(--y);
+            color: #000;
+        }
+        .wn-b.pin.pinned {
+            background: var(--p);
+            color: #fff;
+        }
+        .wn-bd {
+            flex: 1;
+            display: flex;
+            overflow: auto;
+            padding: 8px;
+        }
+        .wn-st {
+            padding: 4px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            font-size: 9px;
+            color: #888;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--bl);
+        }
+        .store-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--bl);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .store-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: 0.1s;
+        }
+        .store-tab.active {
+            color: #fff;
+            border-bottom-color: var(--p);
+        }
+        .store-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 10px;
+        }
+        .store-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-height: 140px;
+        }
+        .store-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        .store-item .ic {
+            font-size: 40px;
+        }
+        .store-item .ttl {
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .store-item .sub {
+            font-size: 9px;
+            color: #888;
+        }
+        .store-item .rating {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 8px;
+            color: #fff;
+        }
+        .store-item .btn {
+            margin-top: auto;
+            padding: 6px 16px;
+            background: var(--p);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .store-item .btn.owned {
+            background: var(--g);
+        }
+        .store-item .price {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--y);
+            margin-top: auto;
+        }
+        .store-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 250;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .store-modal.op {
+            display: flex;
+        }
+        .store-modal-content {
+            background: #1a1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 24px;
+            width: 400px;
+            text-align: center;
+        }
+        .store-modal-content .ic {
+            font-size: 60px;
+            margin-bottom: 12px;
+        }
+        .store-modal-content h3 {
+            margin-bottom: 8px;
+        }
+        .store-modal-content .desc {
+            font-size: 10px;
+            color: #999;
+            margin-bottom: 12px;
+        }
+        .store-modal-content .rating-big {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .store-modal-content button {
+            padding: 8px 20px;
+            background: var(--p);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .calc-cont {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 2px;
+            background: #1e1e2e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .calc-disp {
+            background: #12121e;
+            padding: 16px;
+            text-align: right;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .calc-expr {
+            font-size: 12px;
+            color: #888;
+            min-height: 18px;
+            word-break: break-all;
+        }
+        .calc-res {
+            font-size: 36px;
+            color: #fff;
+            font-weight: 300;
+            word-break: break-all;
+        }
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: #2a2a3a;
+            padding: 1px;
+        }
+        .calc-grid button {
+            padding: 14px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            font-weight: 400;
+            transition: 0.1s;
+            background: #1e1e2e;
+        }
+        .calc-grid button:hover {
+            background: #2a2a3e;
+        }
+        .calc-grid button.num {
+            background: #252535;
+        }
+        .calc-grid button.num:hover {
+            background: #303045;
+        }
+        .calc-grid button.op {
+            background: #2a2a3a;
+            font-size: 18px;
+        }
+        .calc-grid button.op:hover {
+            background: #3a3a4a;
+        }
+        .calc-grid button.eq {
+            background: var(--p);
+        }
+        .calc-grid button.eq:hover {
+            background: #7B6BFF;
+        }
+        .settings-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--bl);
+            padding: 0 8px;
+        }
+        .settings-tab {
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 11px;
+            border-bottom: 2px solid transparent;
+            transition: 0.15s;
+        }
+        .settings-tab.active {
+            color: #fff;
+            border-bottom-color: var(--p);
+        }
+        .settings-tab:hover {
+            color: #ccc;
+        }
+        .settings-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .settings-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--bl);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .settings-card h4 {
+            font-size: 13px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .settings-card label {
+            font-size: 10px;
+            color: #888;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .settings-card input,
+        .settings-card select {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--bl);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 11px;
+            outline: none;
+            margin-bottom: 8px;
+        }
+        .settings-card button {
+            padding: 8px 16px;
+            background: var(--p);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        .nt {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #eee;
+            padding: 10px;
+            border-radius: 6px;
+            resize: none;
+            font: 11px 'Consolas', monospace;
+            outline: none;
+        }
+        .explorer-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: 0.1s;
+            border: 1px solid transparent;
+        }
+        .explorer-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .explorer-item.selected {
+            background: rgba(107, 91, 255, 0.2);
+            border-color: rgba(107, 91, 255, 0.5);
+        }
+        .explorer-item .icon {
+            font-size: 22px;
+            width: 30px;
+            text-align: center;
+        }
+        .explorer-item .name {
+            flex: 1;
+            color: #ddd;
+        }
+        .shutdown-screen,
+        .boot-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .shutdown-screen.op,
+        .boot-screen.op {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .shutdown-text {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 30px;
+            font-weight: 300;
+            letter-spacing: 4px;
+        }
+        .shutdown-logo svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+        .shutdown-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .post-shutdown-menu {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+        .post-shutdown-menu.op {
+            display: flex;
+        }
+        .post-shutdown-menu button {
+            padding: 14px 40px;
+            font-size: 16px;
+            background: #1a1a2e;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            width: 300px;
+        }
+        .post-shutdown-menu button:hover {
+            background: #2a2a3e;
+        }
+        .bsod-glitch {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            display: none;
+            background: repeating-linear-gradient(0deg, rgba(255, 0, 0, 0.15) 0px, rgba(0, 255, 0, 0.15) 2px, rgba(0, 0, 255,
+                        0.15) 4px);
+            animation: glitch 0.08s infinite;
+            pointer-events: none;
+        }
+        .bsod-glitch.op {
+            display: block;
+        }
+        @keyframes glitch {
+            0% {
+                transform: translate(3px, 0);
+            }
+            25% {
+                transform: translate(-3px, 3px);
+            }
+            50% {
+                transform: translate(0, -3px);
+            }
+            75% {
+                transform: translate(-3px, 0);
+            }
+            100% {
+                transform: translate(3px, -3px);
+            }
+        }
+        .bsod {
+            position: fixed;
+            inset: 0;
+            background: #0000aa;
+            color: #fff;
+            z-index: 9997;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Consolas', monospace;
+            text-align: center;
+        }
+        .bsod.op {
+            display: flex;
+        }
+        .bsod h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .bsod .code {
+            font-size: 22px;
+            margin: 12px 0;
+        }
+        .bsod .activation-check {
+            color: #0f0;
+            font-size: 14px;
+            margin: 10px 0;
+            animation: blink 0.5s infinite;
+        }
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+        .bsod button {
+            margin-top: 24px;
+            padding: 14px 36px;
+            font-size: 18px;
+            background: #fff;
+            color: #0000aa;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .recovery-menu {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9996;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #fff;
+        }
+        .recovery-menu.op {
+            display: flex;
+        }
+        .recovery-menu h2 {
+            color: #0f0;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .recovery-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .recovery-options button {
+            padding: 12px 30px;
+            font-size: 14px;
+            background: #1a1a2e;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            width: 450px;
+            text-align: left;
+        }
+        .recovery-options button:hover {
+            background: #2a2a3e;
+        }
+        .recovery-options .hint {
+            font-size: 9px;
+            color: #888;
+            display: block;
+            margin-top: 2px;
+        }
+        .recovery-cmd {
+            position: fixed;
+            inset: 0;
+            background: #0c0c0c;
+            z-index: 9995;
+            display: none;
+            flex-direction: column;
+            font-family: 'Consolas', monospace;
+        }
+        .recovery-cmd.op {
+            display: flex;
+        }
+        .recovery-cmd .cmd-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            color: #0f0;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .recovery-cmd input {
+            padding: 12px 20px;
+            background: #111;
+            border: none;
+            border-top: 1px solid #333;
+            color: #0f0;
+            font: 12px 'Consolas', monospace;
+            outline: none;
+        }
+        .recovery {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9994;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-family: 'Consolas', monospace;
+        }
+        .recovery.op {
+            display: flex;
+        }
+        .recovery h2 {
+            color: #0f0;
+            margin-bottom: 20px;
+        }
+        .prog-bar {
+            width: 360px;
+            height: 24px;
+            background: #333;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 14px 0;
+        }
+        .prog-fill {
+            height: 100%;
+            background: #0f0;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .search-overlay {
+            position: fixed;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 550px;
+            background: var(--gl);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            z-index: 150;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+        .search-overlay.op {
+            display: flex;
+        }
+        .search-overlay input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.04);
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            outline: none;
+        }
+        .search-res {
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .search-res-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+        .search-res-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .lockscr {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 300;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            backdrop-filter: blur(40px);
+        }
+        .lockscr.op {
+            display: flex;
+        }
+        .lockscr input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 24px;
+            font-size: 15px;
+            outline: none;
+            text-align: center;
+            width: 200px;
+        }
+        .lockscr button {
+            background: var(--p);
+            color: #fff;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .cm {
+            position: fixed;
+            background: rgba(18, 18, 32, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            z-index: 200;
+            padding: 6px;
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 200px;
+            backdrop-filter: blur(20px);
+        }
+        .cm.sh {
+            display: flex;
+        }
+        .cm-i {
+            padding: 7px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cm-i:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .cm-s {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            margin: 3px 0;
+        }
+        .gadget {
+            position: absolute;
+            background: rgba(16, 16, 28, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            z-index: 20;
+            min-width: 120px;
+            backdrop-filter: blur(10px);
+            cursor: move;
+        }
+        .gadget-header {
+            padding: 6px 10px;
+            font-size: 10px;
+            color: #888;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .gadget-body {
+            padding: 10px;
+            font-size: 18px;
+            text-align: center;
+            color: #fff;
+        }
+        .game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+        .wm {
+            position: fixed;
+            bottom: 52px;
+            right: 12px;
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.12);
+            z-index: 115;
+            text-align: right;
+            pointer-events: none;
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wp" id="wallpaper"></div>
+    <div class="shutdown-screen" id="shutdownScreen"><div class="shutdown-text">ВЫКЛЮЧЕНИЕ</div><div class="shutdown-logo"><svg viewBox="0 0 80 80" style="fill:#fff;"><rect x="4" y="4" width="34" height="34" rx="4"/><rect x="42" y="4" width="34" height="34" rx="4"/><rect x="4" y="42" width="34" height="34" rx="4"/><rect x="42" y="42" width="34" height="34" rx="4"/></svg></div><div class="shutdown-spinner"></div></div>
+    <div class="boot-screen" id="bootScreen"><div class="shutdown-text">ВКЛЮЧЕНИЕ</div><div class="shutdown-logo"><svg viewBox="0 0 80 80" style="fill:#fff;"><rect x="4" y="4" width="34" height="34" rx="4"/><rect x="42" y="4" width="34" height="34" rx="4"/><rect x="4" y="42" width="34" height="34" rx="4"/><rect x="42" y="42" width="34" height="34" rx="4"/></svg></div><div class="shutdown-spinner"></div></div>
+    <div class="post-shutdown-menu" id="postShutdownMenu"><button onclick="deleteAllData()">🗑 Удалить сохранения</button><button onclick="bootSystem()">🔄 Включение</button><button onclick="factoryReset()">⚙️ Заводские настройки</button></div>
+    <div class="bsod-glitch" id="bsodGlitch"></div>
+    <div class="bsod" id="bsod"><h1>:( KteOs</h1><p>На вашем ПК возникла проблема.</p><div class="code" id="bsodPct">0% complete</div><p>Код: 0x0000007B</p><p>INACCESSIBLE_BOOT_DEVICE</p><div class="activation-check" id="activationCheck"></div><button onclick="showRecoveryMenu()">🔄 Восстановить</button></div>
+    <div class="recovery-menu" id="recoveryMenu"><h2>🛠 KteOs Recovery</h2><p style="color:#888;margin-bottom:10px;">Выберите способ восстановления:</p><div class="recovery-options"><button onclick="autoRepair()">🔄 Автоматическое восстановление <span class="hint">Быстрая проверка и исправление System32</span></button><button onclick="openRecoveryCMD()">💻 Командная строка <span class="hint">Введите sfc /scannow для проверки системы</span></button><button onclick="restoreSystem32()">📦 Восстановить System32 из бэкапа <span class="hint">Загрузка резервной копии системных файлов</span></button><button onclick="safeMode()">🔒 Безопасный режим <span class="hint">Загрузка только проводника и терминала</span></button><button onclick="systemImageRecovery()">🖼 Восстановление образа системы <span class="hint">Полный сброс до заводских настроек</span></button></div></div>
+    <div class="recovery-cmd" id="recoveryCMD"><div class="cmd-output" id="recoveryCmdOutput">KteOs Recovery CMD\nsfc /scannow — проверить\nbootrec /fixboot — загрузчик\nchkdsk — диск\nexit — выход\n\nX:\\></div><input type="text" id="recoveryCmdInput" placeholder="Введите команду..."></div>
+    <div class="recovery" id="recovery"><h2>KteOs Recovery</h2><p id="recDesc">Восстановление System32...</p><div class="prog-bar"><div class="prog-fill" id="recProg"></div></div><p id="recStat">Подготовка...</p></div>
+    <div class="lockscr" id="lockscr"><div style="font-size:64px;">🔒</div><div style="color:#fff;font-size:16px;font-weight:500;" id="lockUser">User</div><input type="password" id="lockIn" placeholder="Введите пароль"><button onclick="unlock()">Войти</button></div>
+    <div class="search-overlay" id="searchOverlay"><input type="text" id="searchInput" placeholder="Поиск в KteOs... (Esc)"><div class="search-res" id="searchResults"></div></div>
+
+    <div id="workArea">
+        <div class="ds" id="desktopIcons"></div>
+        <div class="gadget" id="gadgetClock" style="top:10px;right:10px;"><div class="gadget-header">🕐 Часы</div><div class="gadget-body" id="gadgetClockBody">00:00:00</div></div>
+        <div class="gadget" id="gadgetWeather" style="top:10px;right:160px;"><div class="gadget-header">🌤 Погода</div><div class="gadget-body">☀️ +22°C</div></div>
+        <div class="gadget" id="gadgetCPU" style="top:120px;right:10px;"><div class="gadget-header">📊 CPU</div><div class="gadget-body" id="gadgetCPUBody">0%</div></div>
+
+        <div class="wn" id="wnExplorer" style="top:30px;left:60px;width:650px;height:440px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnExplorer')"><span class="wn-t">📁 Проводник</span><div class="wn-ctrls"><button class="wn-b pin" onclick="pinWindow('wnExplorer')">📌</button><button class="wn-b mx" onclick="maxWin('wnExplorer')">☐</button><button class="wn-b" onclick="minWin('wnExplorer')">─</button><button class="wn-b cl" onclick="closeWin('wnExplorer')">✕</button></div></div>
+            <div style="display:flex;padding:6px 10px;background:rgba(0,0,0,0.25);gap:6px;"><button onclick="explorerNav('back')" style="background:none;border:none;color:#fff;cursor:pointer;">◀</button><button onclick="explorerNav('forward')" style="background:none;border:none;color:#fff;cursor:pointer;">▶</button><button onclick="explorerNav('up')" style="background:none;border:none;color:#fff;cursor:pointer;">↑</button><input id="explorerAddress" value="C:\" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:5px 8px;border-radius:4px;font-size:11px;outline:none;" onkeydown="if(event.key==='Enter')explorerGo()"></div>
+            <div class="wn-bd" style="flex-direction:column;gap:2px;padding:4px;" id="explorerContent" oncontextmenu="explorerContextMenu(event)"></div>
+            <div class="wn-st"><span id="explorerStatus">0 объектов</span></div>
+        </div>
+
+        <div class="wn" id="wnStore" style="top:40px;left:100px;width:780px;height:520px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnStore')"><span class="wn-t">🛒 KteStore</span><div class="wn-ctrls"><button class="wn-b pin" onclick="pinWindow('wnStore')">📌</button><button class="wn-b mx" onclick="maxWin('wnStore')">☐</button><button class="wn-b" onclick="minWin('wnStore')">─</button><button class="wn-b cl" onclick="closeWin('wnStore')">✕</button></div></div>
+            <div class="store-tabs"><button class="store-tab active" data-tab="games">🎮 Игры</button><button class="store-tab" data-tab="elberros">🖥 ELBERR OS</button><button class="store-tab" data-tab="apps">📦 Программы</button><button class="store-tab" data-tab="wallpapers">🖼 Обои</button></div>
+            <div class="wn-bd" style="padding:0;"><div class="store-grid" id="storeGrid"></div></div>
+            <div class="wn-st"><span id="dollarBalance">💵 0 $</span></div>
+        </div>
+
+        <div class="store-modal" id="storeModal"><div class="store-modal-content"><div class="ic" id="modalIcon"></div><h3 id="modalTitle"></h3><div class="desc" id="modalDesc"></div><div class="rating-big" id="modalRating"></div><button id="modalBtn" onclick="document.getElementById('storeModal').classList.remove('op')">Закрыть</button></div></div>
+
+        <div class="wn" id="wnCalc" style="top:60px;left:220px;width:300px;height:460px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnCalc')"><span class="wn-t">🔢 Калькулятор</span><div class="wn-ctrls"><button class="wn-b cl" onclick="closeWin('wnCalc')">✕</button></div></div>
+            <div class="wn-bd" style="padding:0;"><div class="calc-cont"><div class="calc-disp"><div class="calc-expr" id="calcExpr"></div><div class="calc-res" id="calcRes">0</div></div><div class="calc-grid" id="calcGrid"></div></div></div>
+        </div>
+
+        <div class="wn" id="wnCalendar" style="top:70px;left:300px;width:270px;height:310px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnCalendar')"><span class="wn-t">📅 Календарь</span><div class="wn-ctrls"><button class="wn-b cl" onclick="closeWin('wnCalendar')">✕</button></div></div>
+            <div class="wn-bd" style="flex-direction:column;padding:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;"><button onclick="changeMonth(-1)" style="background:none;border:none;color:#fff;cursor:pointer;">◀</button><span id="calTitle">Май 2026</span><button onclick="changeMonth(1)" style="background:none;border:none;color:#fff;cursor:pointer;">▶</button></div><div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;font-size:10px;"></div></div>
+        </div>
+
+        <div class="wn" id="wnPaint" style="top:90px;left:340px;width:450px;height:350px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnPaint')"><span class="wn-t">🎨 Paint</span><div class="wn-ctrls"><button class="wn-b mx" onclick="maxWin('wnPaint')">☐</button><button class="wn-b" onclick="minWin('wnPaint')">─</button><button class="wn-b cl" onclick="closeWin('wnPaint')">✕</button></div></div>
+            <div class="wn-bd" style="padding:0;flex-direction:column;"><div style="display:flex;gap:4px;padding:4px 6px;background:rgba(0,0,0,0.25);"><input type="color" id="pColor" value="#000000" style="width:26px;height:26px;border:none;cursor:pointer;"><input type="range" id="pSize" min="1" max="20" value="4" style="width:80px;"><button onclick="clearPaint()" style="background:var(--r);color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:9px;margin-left:auto;">Очистить</button></div><canvas id="pCanvas" style="flex:1;background:#fff;cursor:crosshair;"></canvas></div>
+        </div>
+
+        <div class="wn" id="wnTerminal" style="top:130px;left:100px;width:520px;height:300px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnTerminal')"><span class="wn-t">⬛ Терминал</span><div class="wn-ctrls"><button class="wn-b cl" onclick="closeWin('wnTerminal')">✕</button></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;background:#0c0c0c;font:10px 'Consolas',monospace;"><div style="flex:1;overflow-y:auto;padding:8px;color:#0f0;white-space:pre-wrap;" id="termOut"></div><div style="display:flex;padding:4px 6px;background:#111;"><span style="color:#0f0;padding:2px 6px;" id="termPrompt">C:\></span><input type="text" id="termIn" style="flex:1;background:transparent;border:none;color:#0f0;font:10px 'Consolas',monospace;outline:none;"></div></div>
+        </div>
+
+        <div class="wn" id="wnNotepad" style="top:50px;left:420px;width:320px;height:240px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnNotepad')"><span class="wn-t">📝 Блокнот</span><div class="wn-ctrls"><button class="wn-b cl" onclick="closeWin('wnNotepad')">✕</button></div></div>
+            <textarea class="nt" id="notepadText">KteOs Pro v5.5</textarea>
+            <div class="wn-st"><button onclick="saveCurrentFile()" style="background:var(--p);color:#fff;border:none;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:9px;">💾</button><span id="notepadFileName"></span></div>
+        </div>
+
+        <div class="wn" id="wnTaskmgr" style="top:160px;left:320px;width:360px;height:260px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnTaskmgr')"><span class="wn-t">📊 Диспетчер задач</span><div class="wn-ctrls"><button class="wn-b cl" onclick="closeWin('wnTaskmgr')">✕</button></div></div>
+            <div class="wn-bd" style="flex-direction:column;font-size:10px;gap:4px;padding:10px;" id="taskmgrContent"></div>
+        </div>
+
+        <div class="wn" id="wnSettings" style="top:50%;left:50%;transform:translate(-50%,-50%);width:650px;height:480px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnSettings')"><span class="wn-t">⚙️ Настройки</span><div class="wn-ctrls"><button class="wn-b cl" onclick="closeWin('wnSettings')">✕</button></div></div>
+            <div class="settings-tabs"><button class="settings-tab active" data-tab="system">📱 Система</button><button class="settings-tab" data-tab="personalization">🎨 Персонализация</button><button class="settings-tab" data-tab="account">👤 Учётная запись</button><button class="settings-tab" data-tab="backup">💾 Резервное копирование</button><button class="settings-tab" data-tab="sound">🔊 Звук</button></div>
+            <div class="settings-content" id="settingsContent"></div>
+        </div>
+
+        <div class="wn" id="wnGame" style="top:20px;left:20px;width:850px;height:620px;">
+            <div class="wn-h" onmousedown="windowDrag(event,'wnGame')"><span class="wn-t" id="gameTitle">🎮</span><div class="wn-ctrls"><button class="wn-b mx" onclick="maxWin('wnGame')">☐</button><button class="wn-b" onclick="minWin('wnGame')">─</button><button class="wn-b cl" onclick="closeGame()">✕</button></div></div>
+            <iframe id="gameFrame" class="game-frame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals"></iframe>
+        </div>
+    </div>
+
+    <div class="tb" id="taskbar">
+        <div class="tb-l"><button class="bs" id="btnStart"><svg viewBox="0 0 16 16"><rect x="0" y="0" width="7" height="7" rx="1"/><rect x="9" y="0" width="7" height="7" rx="1"/><rect x="0" y="9" width="7" height="7" rx="1"/><rect x="9" y="9" width="7" height="7" rx="1"/></svg></button></div>
+        <div class="tb-c" id="tbApps"></div>
+        <div class="tb-r"><span id="netStat">📶</span><span id="audStat" onclick="toggleMute()">🔊</span><span id="batStat">🔋</span><span onclick="lockScreen()" style="cursor:pointer;margin:0 6px;">🔒</span><div class="cl" onclick="showSearch()"><div class="ct" id="clockTime">12:45</div><div class="cd">30.05.2026</div></div></div>
+    </div>
+
+    <div class="sm" id="startMenu">
+        <div class="sm-search"><span>🔍</span><input type="text" id="startSearch" placeholder="Поиск..."></div>
+        <div class="sm-results" id="startResults"></div>
+        <div class="sm-l" id="startApps"></div>
+        <div class="sm-f"><span>👤 <span id="menuUser">User</span></span><button onclick="shutdown()" style="background:var(--r);color:#fff;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:9px;">⏻</button></div>
+    </div>
+
+    <div class="cm" id="ctxMenuDesktop"><div class="cm-i" data-action="newFile">📄 Создать файл</div><div class="cm-i" data-action="newFolder">📁 Создать папку</div><div class="cm-i" data-action="newShortcut">🔗 Создать ярлык</div><div class="cm-s"></div><div class="cm-i" data-action="changeBg">🖼 Сменить обои</div><div class="cm-i" data-action="refresh">🔄 Обновить</div><div class="cm-i" data-action="closeAll">✕ Закрыть все окна</div></div>
+    <div class="cm" id="ctxMenuExplorer"><div class="cm-i" data-action="open">📂 Открыть</div><div class="cm-i" data-action="rename">✏️ Переименовать</div><div class="cm-s"></div><div class="cm-i" data-action="copy">📋 Копировать</div><div class="cm-i" data-action="cut">✂️ Вырезать</div><div class="cm-i" data-action="paste">📌 Вставить</div><div class="cm-s"></div><div class="cm-i" data-action="delete">🗑 Удалить</div><div class="cm-s"></div><div class="cm-i" data-action="properties">ℹ️ Свойства</div></div>
+    <div class="wm" id="watermark">KteOs Pro v5.5 | Build 26000</div>
+
+    <script>
+        let zIndex = 80,
+            dollars = parseInt(localStorage.getItem('kteos_dollars') || '0'),
+            ownedGames = JSON.parse(localStorage.getItem('kteos_games') || '[]'),
+            lockPassword = localStorage.getItem('kteos_lock') || '',
+            account = JSON.parse(localStorage.getItem('kteos_account') || '{"login":"User","password":""}'),
+            isMuted = localStorage.getItem('kteos_mute') === '1',
+            audioCtx = null,
+            calDate = new Date(),
+            calcVal = '0',
+            calcPrev = null,
+            calcOp = null,
+            currentDir = 'C:',
+            desktopIcons = JSON.parse(localStorage.getItem('kteos_desktop') || '[]'),
+            explorerHistory = ['C:'],
+            explorerHistoryIndex = 0,
+            clipboard = { path: null, name: null, action: null },
+            selectedExplorerItem = null,
+            currentNotepadFile = null,
+            taskmgrInterval = null,
+            storeTab = 'games',
+            draggedStartItem = null;
+        const SYSTEM32_BACKUP = { 'kernel.dll': { type: 'file', content: 'KteOs Kernel', size: 2048,
+                created: Date.now() }, 'drivers.sys': { type: 'file', content: 'Drivers', size: 1024,
+                created: Date.now() }, 'config.ini': { type: 'file', content: '[System]', size: 128,
+                created: Date.now() }, 'bootmgr.exe': { type: 'file', content: 'BootMgr', size: 4096,
+            created: Date.now() } };
+        const DEFAULT_APPS = [{ id: 'explorer', name: 'Проводник', icon: '📁' }, { id: 'store', name: 'KteStore',
+            icon: '🛒' }, { id: 'notepad', name: 'Блокнот', icon: '📝' }, { id: 'calc', name: 'Калькулятор',
+            icon: '🔢' }, { id: 'calendar', name: 'Календарь', icon: '📅' }, { id: 'paint', name: 'Paint',
+            icon: '🎨' }, { id: 'terminal', name: 'Терминал', icon: '⬛' }, { id: 'taskmgr', name: 'Диспетчер',
+            icon: '📊' }, { id: 'settings', name: 'Параметры', icon: '⚙️' }];
+        const STORE_DATA = {
+            games: [{ id: 'neonbird', n: 'Neon Bird', i: '🐦', r: '6+', d: 'Аркадная игра про птицу', p: 'daardos/neon_bird/index.html', pr: 0, f: 1 }, { id: 'slimeclicker', n: 'Slime Clicker', i: '🟢', r: '6+', d: 'Кликай слизней!', p: 'Slime_Clicker/index.html', pr: 0, f: 1 }, { id: 'slimefarm1', n: 'Slime Farm 1', i: '🟢', r: '6+', d: 'Ферма слизней', p: 'Slime_Farm_2D/index.html', pr: 0, f: 1 }, { id: 'slimefarm2', n: 'Slime Farm 2', i: '🟢', r: '6+', d: 'Ферма слизней 2', p: 'Slime_Farm2/index.html', pr: 0, f: 1 }, { id: 'rtap', n: 'RTAP', i: '🎮', r: '8+', d: 'Reizer the Anna project', p: 'ELBERR_OS_REMAKE/RTAP/index.html', pr: 325, f: 0 }, { id: 'tad', n: 'TAD', i: '🎮', r: '12+', d: 'The Anna Days', p: 'ELBERR_OS_REMAKE/TAD/index.html', pr: 450, f: 0 }, { id: 'tpd', n: 'TPD', i: '🎮', r: '16+', d: 'The Pierre Days', p: 'ELBERR_OS_REMAKE/TPD/index.html', pr: 950, f: 0 }, { id: 'dollarclicker', n: 'Dollar Clicker', i: '💵', r: '6+', d: 'Кликай и богатей!', p: '', pr: 0, f: 1, ia: 1 }],
+            elberros: [{ id: 'elberros1', n: 'ELBERR OS Гл.1', i: '🖥', r: '12+', d: 'Начало приключения', p: 'ELBERR_OS_REMAKE/Chapter1/index.html', pr: 0, f: 1 }, { id: 'elberros2', n: 'ELBERR OS Гл.2', i: '🖥', r: '12+', d: 'Продолжение', p: 'ELBERR_OS_REMAKE/Chapter2/index.html', pr: 0, f: 1 }, { id: 'elberros3', n: 'ELBERR OS Гл.3', i: '🖥', r: '12+', d: 'Развитие сюжета', p: 'ELBERR_OS_REMAKE/Chapter3/index.html', pr: 0, f: 1 }, { id: 'elberros4', n: 'ELBERR OS Гл.4', i: '🖥', r: '12+', d: 'Экшен', p: 'ELBERR_OS_REMAKE/Chapter4/index.html', pr: 0, f: 1 }, { id: 'elberros5', n: 'ELBERR OS Гл.5', i: '🖥', r: '12+', d: 'Финал близко', p: 'ELBERR_OS_REMAKE/Chapter5/index.html', pr: 0, f: 1 }, { id: 'elberros6', n: 'ELBERR OS Гл.6', i: '🖥', r: '12+', d: 'Финал', p: 'ELBERR_OS_REMAKE/Chapter6/index.html', pr: 0, f: 1 }],
+            apps: [{ id: 'notepad', n: 'Блокнот', i: '📝', r: '★4.5', d: 'Текстовый редактор', p: '', pr: 0, f: 1, ia: 2 }, { id: 'calc', n: 'Калькулятор', i: '🔢', r: '★4.8', d: 'Современный калькулятор', p: '', pr: 0, f: 1, ia: 2 }, { id: 'paint', n: 'Paint', i: '🎨', r: '★4.2', d: 'Рисование', p: '', pr: 0, f: 1, ia: 2 }, { id: 'calendar', n: 'Календарь', i: '📅', r: '★4.6', d: 'Календарь', p: '', pr: 0, f: 1, ia: 2 }, { id: 'terminal', n: 'Терминал', i: '⬛', r: '★4.9', d: 'Командная строка', p: '', pr: 0, f: 1, ia: 2 }, { id: 'taskmgr', n: 'Диспетчер задач', i: '📊', r: '★4.0', d: 'Мониторинг системы', p: '', pr: 0, f: 1, ia: 2 }],
+            wallpapers: [{ id: 'bg1', n: 'Лес', i: '🌲', r: '★4.3', d: 'Спокойный лес', p: '', pr: 0, f: 1, ia: 3, bg: 'forest' }, { id: 'bg2', n: 'Закат', i: '🌅', r: '★4.7', d: 'Красивый закат', p: '', pr: 0, f: 1, ia: 3, bg: 'sunset' }, { id: 'bg3', n: 'Горы', i: '🏔', r: '★4.5', d: 'Величественные горы', p: '', pr: 0, f: 1, ia: 3, bg: 'mountains' }, { id: 'bg4', n: 'Ночь', i: '🌙', r: '★4.4', d: 'Ночное небо', p: '', pr: 0, f: 1, ia: 3, bg: 'night' }]
+        };
+        let fileSystem = JSON.parse(localStorage.getItem('kteos_fs') || '{}');
+        if (!fileSystem['C:'] || Object.keys(fileSystem['C:']).length === 0) { fileSystem['C:'] = { 'System32': { type: 'folder', content: JSON.parse(JSON.stringify(SYSTEM32_BACKUP)) }, 'Users': { type: 'folder', content: { 'User': { type: 'folder', content: {} } } }, 'Program Files': { type: 'folder', content: {} }, 'Windows': { type: 'folder', content: {} }, 'Games': { type: 'folder', content: {} } };
+            saveFS(); }
+        if (!fileSystem['C:']['Games']) { fileSystem['C:']['Games'] = { type: 'folder', content: {} };
+            saveFS(); }
+
+        function saveFS() { try { localStorage.setItem('kteos_fs', JSON.stringify(fileSystem)); } catch (e) {} }
+
+        function getFolder(path) { if (path === 'C:' || path === 'C:\\') return fileSystem['C:'] || null; const parts = path.replace(/^C:\\?/, '').split('\\').filter(p => p); let current = fileSystem['C:']; if (!current) return null; for (const part of parts) { if (!current || !current[part] || current[part].type !== 'folder') return null;
+                current = current[part].content; } return current; }
+
+        function getItem(path, name) { const f = getFolder(path); return f ? f[name] || null : null; }
+
+        function createFile(path, name, content = '') { const f = getFolder(path); if (f && !f[name]) { f[name] = { type: 'file', content, size: content.length, created: Date.now() };
+                saveFS(); return true; } return false; }
+
+        function createFolder(path, name) { const f = getFolder(path); if (f && !f[name]) { f[name] = { type: 'folder', content: {} };
+                saveFS(); return true; } return false; }
+
+        function renameItem(path, oldName, newName) { const f = getFolder(path); if (f && f[oldName] && !f[newName]) { f[newName] = f[oldName];
+                delete f[oldName];
+                saveFS(); return true; } return false; }
+
+        function deleteItem(path, name) { const f = getFolder(path); if (f && f[name]) { delete f[name];
+                saveFS(); return true; } return false; }
+
+        function initAudio() { if (!audioCtx) { try { audioCtx = new(window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } }
+
+        function playBeep(f = 800, d = 0.1, t = 'square') { if (!audioCtx || isMuted) return; if (audioCtx.state === 'suspended') audioCtx.resume(); try { const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = t;
+                o.frequency.value = f;
+                g.gain.value = 0.06;
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.start();
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+                o.stop(audioCtx.currentTime + d); } catch (e) {} }
+
+        function sfx(t) { initAudio(); switch (t) { case 'open': playBeep(660, 0.08); break; case 'close': playBeep(440, 0.08); break; case 'error': playBeep(200, 0.25, 'sawtooth'); break; case 'click': playBeep(1000, 0.03); break; case 'notify': playBeep(1000, 0.04);
+                setTimeout(() => playBeep(1200, 0.04), 70); break; case 'lock': playBeep(300, 0.18); break; case 'unlock': playBeep(800, 0.12); break; } }
+
+        function toggleMute() { isMuted = !isMuted;
+            document.getElementById('audStat').textContent = isMuted ? '🔇' : '🔊';
+            localStorage.setItem('kteos_mute', isMuted ? '1' : '0'); }
+
+        function openApp(appId) { const winId = 'wn' + appId.charAt(0).toUpperCase() + appId.slice(1); const win = document.getElementById(winId); if (!win) return;
+            win.classList.add('op');
+            win.style.zIndex = ++zIndex;
+            sfx('open'); if (appId === 'explorer') renderExplorer(explorerHistory[explorerHistoryIndex] || 'C:'); if (appId === 'store') renderStore(); if (appId === 'calc') initCalc(); if (appId === 'calendar') renderCalendar(); if (appId === 'paint') initPaint(); if (appId === 'terminal') initTerminal(); if (appId === 'taskmgr') { renderTaskmgr();
+                startTaskmgrUpdates(); } if (appId === 'settings') renderSettings();
+            document.querySelectorAll('.ti').forEach(t => t.classList.remove('ac')); const tb = document.querySelector(`.ti[data-app="${appId}"]`); if (tb) tb.classList.add('ac'); }
+
+        function closeWin(id) { const w = document.getElementById(id); if (w) { w.classList.remove('op');
+                sfx('close'); if (id === 'wnTaskmgr' && taskmgrInterval) { clearInterval(taskmgrInterval);
+                    taskmgrInterval = null; } }
+            checkFullscreen(); }
+
+        function minWin(id) { document.getElementById(id)?.classList.remove('op');
+            checkFullscreen(); }
+
+        function maxWin(id) { const w = document.getElementById(id); if (!w) return;
+            w.classList.toggle('max'); if (w.classList.contains('max')) { document.getElementById('workArea').classList.add('fullscreen');
+                document.getElementById('taskbar').classList.add('hidden'); } else { document.getElementById('workArea').classList.remove('fullscreen');
+                document.getElementById('taskbar').classList.remove('hidden'); } }
+
+        function checkFullscreen() { const hasMax = document.querySelector('.wn.max.op'); if (!hasMax) { document.getElementById('workArea').classList.remove('fullscreen');
+                document.getElementById('taskbar').classList.remove('hidden'); } }
+
+        function pinWindow(id) { const w = document.getElementById(id); const btn = w.querySelector('.pin');
+            w.classList.toggle('pinned');
+            btn.classList.toggle('pinned'); }
+
+        function windowDrag(e, winId) { e.preventDefault(); const win = document.getElementById(winId); if (!win || win.classList.contains('max')) return; const rect = win.getBoundingClientRect(), ox = e.clientX - rect.left, oy = e.clientY - rect.top;
+            win.style.zIndex = ++zIndex;
+
+            function move(e) { const wa = document.getElementById('workArea'), wr = wa.getBoundingClientRect();
+                win.style.left = Math.max(0, Math.min(e.clientX - ox, wr.width - win.offsetWidth)) + 'px';
+                win.style.top = Math.max(0, Math.min(e.clientY - oy, wr.height - win.offsetHeight)) + 'px'; }
+
+            function up() { document.removeEventListener('mousemove', move);
+                document.removeEventListener('mouseup', up); }
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up); }
+
+        function renderExplorer(path) { const folder = getFolder(path); const container = document.getElementById('explorerContent');
+            document.getElementById('explorerAddress').value = path; if (!folder && path !== 'C:' && path !== 'C:\\') { container.innerHTML = '<div style="color:#888;text-align:center;padding:30px;">📍 Папка не найдена</div>'; return; } const items = Object.entries(folder || {});
+            document.getElementById('explorerStatus').textContent = items.length + ' объектов';
+            container.innerHTML = items.map(([name, item]) => { const isFolder = item.type === 'folder'; return `<div class="explorer-item" data-name="${name}" ondblclick="${isFolder ? `explorerNav('${path}\\${name}')` : `openFile('${path}','${name}')`}" onclick="selectExplorerItem(this,'${name}')" oncontextmenu="event.stopPropagation();selectExplorerItem(this,'${name}');showExplorerCM(event,'${path}','${name}')"><span class="icon">${isFolder?'📁':getFileIcon(name)}</span><span class="name">${name}</span></div>`; }).join('');
+            addSys32Button(); }
+
+        function addSys32Button() { const old = document.getElementById('sys32btn'); if (old) old.remove(); const cp = explorerHistory[explorerHistoryIndex] || 'C:'; if (cp === 'C:' || cp === 'C:\\' || cp.includes('System32')) { const btn = document.createElement('button');
+                btn.id = 'sys32btn';
+                btn.textContent = '⚠️ Удалить System32';
+                btn.style.cssText = 'background:#E81123;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:9px;margin-left:8px;';
+                btn.onclick = function() { if (confirm('⚠️ Удалить System32? BSOD!')) { if (confirm('ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ!')) { const sys32 = getFolder('C:\\System32'); if (sys32) { for (const k in sys32) delete sys32[k];
+                                saveFS(); }
+                            triggerBSOD(); } } };
+                document.getElementById('explorerStatus').after(btn); } }
+
+        function getFileIcon(n) { const e = n.split('.').pop().toLowerCase(); const i = { txt: '📝', js: '📜', html: '🌐', css: '🎨', png: '🖼', jpg: '🖼', mp3: '🎵' }; return i[e] || '📄'; }
+
+        function selectExplorerItem(el, name) { document.querySelectorAll('.explorer-item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedExplorerItem = { name, path: explorerHistory[explorerHistoryIndex] || 'C:' }; }
+
+        function explorerNav(dest) { const cp = explorerHistory[explorerHistoryIndex] || 'C:'; if (dest === 'back' && explorerHistoryIndex > 0) explorerHistoryIndex--; else if (dest === 'forward' && explorerHistoryIndex < explorerHistory.length - 1) explorerHistoryIndex++; else if (dest === 'up') { const p = cp.split('\\');
+                p.pop(); const pp = p.join('\\') || 'C:'; if (pp !== cp) { explorerHistory = explorerHistory.slice(0, explorerHistoryIndex + 1);
+                    explorerHistory.push(pp);
+                    explorerHistoryIndex = explorerHistory.length - 1; } } else if (typeof dest === 'string') { explorerHistory = explorerHistory.slice(0, explorerHistoryIndex + 1);
+                explorerHistory.push(dest);
+                explorerHistoryIndex = explorerHistory.length - 1; }
+            renderExplorer(explorerHistory[explorerHistoryIndex] || 'C:'); }
+
+        function explorerGo() { const p = document.getElementById('explorerAddress').value; if (getFolder(p) || p === 'C:' || p === 'C:\\') { explorerHistory.push(p);
+                explorerHistoryIndex = explorerHistory.length - 1;
+                renderExplorer(p); } else alert('Путь не найден!'); }
+
+        function openFile(path, name) { const item = getItem(path, name); if (!item) return; if (item.type === 'folder') { explorerNav(`${path}\\${name}`); } else if (name.endsWith('.txt')) { currentNotepadFile = { path, name };
+                document.getElementById('notepadText').value = item.content || '';
+                document.getElementById('notepadFileName').textContent = name;
+                openApp('notepad'); } }
+
+        function saveCurrentFile() { if (currentNotepadFile) { const f = getFolder(currentNotepadFile.path); if (f && f[currentNotepadFile.name]) { f[currentNotepadFile.name].content = document.getElementById('notepadText').value;
+                    f[currentNotepadFile.name].size = document.getElementById('notepadText').value.length;
+                    saveFS();
+                    sfx('notify'); } } }
+
+        function showExplorerCM(e, path, name) { e.preventDefault(); const cm = document.getElementById('ctxMenuExplorer');
+            cm.style.left = e.clientX + 'px';
+            cm.style.top = e.clientY + 'px';
+            cm.classList.add('sh');
+            cm.dataset.path = path;
+            cm.dataset.name = name; }
+
+        function explorerContextMenu(e) { e.preventDefault(); const cm = document.getElementById('ctxMenuDesktop');
+            cm.style.left = e.clientX + 'px';
+            cm.style.top = e.clientY + 'px';
+            cm.classList.add('sh');
+            cm.dataset.path = explorerHistory[explorerHistoryIndex] || 'C:'; }
+        document.addEventListener('click', e => { if (!e.target.closest('.cm')) document.querySelectorAll('.cm').forEach(m => m.classList.remove('sh')); });
+        document.getElementById('ctxMenuDesktop').addEventListener('click', function(e) { const a = e.target.closest('.cm-i')?.dataset.action, p = this.dataset.path || 'C:';
+            this.classList.remove('sh');
+            handleCA(a, p); if (a === 'deleteIcon') { const id = this.dataset.iconId;
+                desktopIcons = desktopIcons.filter(i => i.id !== id);
+                saveDI();
+                renderDI();
+                sfx('notify'); } });
+        document.getElementById('ctxMenuExplorer').addEventListener('click', function(e) { const a = e.target.closest('.cm-i')?.dataset.action, p = this.dataset.path, n = this.dataset.name;
+            this.classList.remove('sh');
+            handleCA(a, p, n); });
+
+        function handleCA(a, p, n) { switch (a) { case 'newFile': const fn = prompt('Имя файла:', 'Новый.txt'); if (fn) { createFile(p, fn);
+                    addDesktopIcon('file', fn, '📄', p); } break; case 'newFolder': const dn = prompt('Имя папки:', 'Новая папка'); if (dn) { createFolder(p, dn);
+                    addDesktopIcon('folder', dn, '📁', p); } break; case 'newShortcut': const sn = prompt('Название:'), ai = prompt('ID (explorer, calc, notepad, terminal, paint, calendar, store, taskmgr, settings):'); if (sn && ai) { addDesktopIcon('app', sn, '🔗', '', ai); } break; case 'rename': if (n) { const nn = prompt('Новое имя:', n); if (nn && nn !== n) renameItem(p, n, nn); } break; case 'copy': if (n) clipboard = { path: p, name: n, action: 'copy' }; break; case 'cut': if (n) clipboard = { path: p, name: n, action: 'cut' }; break; case 'paste': if (clipboard.name) { const s = getItem(clipboard.path, clipboard.name), d = getFolder(p); if (s && d && !d[clipboard.name]) { d[clipboard.name] = JSON.parse(JSON.stringify(s)); if (clipboard.action === 'cut') deleteItem(clipboard.path, clipboard.name);
+                        saveFS();
+                        clipboard = { path: null, name: null, action: null }; } } break; case 'delete': if (n) { if (n === 'System32' || (p.includes('System32') && p.split('\\').pop() === 'System32')) { if (confirm('⚠️ Удалить System32? BSOD!')) { if (confirm('ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ!')) { const sys32 = getFolder('C:\\System32'); if (sys32) { for (const k in sys32) delete sys32[k];
+                                        saveFS(); }
+                                    triggerBSOD(); return; } } } else if (confirm(`Удалить ${n}?`)) { deleteItem(p, n);
+                        removeDesktopIcon(n); } } break; case 'properties': if (n) showProperties(p, n); break; case 'changeBg': openApp('settings'); break; case 'refresh': renderExplorer(explorerHistory[explorerHistoryIndex] || 'C:');
+                    renderDI(); break; case 'closeAll': document.querySelectorAll('.wn.op').forEach(w => { w.classList.remove('op');
+                        sfx('close'); }); break; } if (a !== 'refresh' && a !== 'delete') renderExplorer(explorerHistory[explorerHistoryIndex] || 'C:'); }
+
+        function addDesktopIcon(type, name, icon, path, appId) { const newIcon = { id: type + '_' + Date.now(), name, icon, x: 10 + Math.random() * 200, y: 10 + desktopIcons.length * 80, type, path, appId };
+            desktopIcons.push(newIcon);
+            saveDI();
+            renderDI(); if (type === 'app' && appId && !ownedGames.includes(appId) && STORE_DATA.games.some(g => g.id === appId) || STORE_DATA.elberros.some(g => g.id === appId)) { if (!fileSystem['C:']['Games']) fileSystem['C:']['Games'] = { type: 'folder', content: {} }; if (!fileSystem['C:']['Games'].content[name]) fileSystem['C:']['Games'].content[name] = { type: 'file', content: appId, size: 0, created: Date.now() };
+                saveFS(); }
+            sfx('notify'); }
+
+        function removeDesktopIcon(name) { desktopIcons = desktopIcons.filter(i => i.name !== name);
+            saveDI();
+            renderDI(); }
+
+        function showProperties(p, n) { const i = getItem(p, n); if (!i) return;
+            document.getElementById('propertiesContent').innerHTML = `<div><b>Имя:</b> ${n}</div><div><b>Тип:</b> ${i.type==='folder'?'Папка':'Файл'}</div><div><b>Размер:</b> ${i.size||'—'}</div><div><b>Путь:</b> ${p}\\${n}</div>`; const w = document.getElementById('wnProperties');
+            w.classList.add('op');
+            w.style.zIndex = ++zIndex; }
+
+        function initTerminal() { const inp = document.getElementById('termIn'), out = document.getElementById('termOut'), prm = document.getElementById('termPrompt'); if (!out.textContent) out.textContent = 'KteOs Terminal\nType "help".\n';
+            out.textContent += '\n' + currentDir + '>';
+            prm.textContent = currentDir + '>';
+            inp.onkeydown = function(e) { if (e.key === 'Enter') { const cmd = this.value.trim(), parts = cmd.split(' '), c = parts[0].toLowerCase(), a = parts.slice(1);
+                    out.textContent += '\n' + cmd; switch (c) { case 'help': out.textContent += '\n  help, clear, ls, cd, mkdir, del, systeminfo, bsod, shutdown'; break; case 'clear': out.textContent = ''; break; case 'ls': const f = getFolder(currentDir);
+                            out.textContent += '\n' + (f ? Object.keys(f).join('  ') || '(empty)' : 'Not found'); break; case 'cd': if (!a[0]) currentDir = 'C:'; else if (a[0] === '..') { const pp = currentDir.split('\\');
+                                pp.pop();
+                                currentDir = pp.join('\\') || 'C:'; } else { const np = currentDir + '\\' + a[0]; if (getFolder(np)) currentDir = np;
+                                else out.textContent += '\n  Not found'; }
+                            prm.textContent = currentDir + '>'; break; case 'mkdir': if (a[0] && createFolder(currentDir, a[0])) out.textContent += '\n  Created: ' + a[0]; break; case 'del': if (a[0]) { const target = a[0].toLowerCase(); if (target === 'system32' || (currentDir === 'C:' && target === 'system32') || (currentDir.includes('System32') && target === 'system32')) { out.textContent += '\n  ⚠️ Deleting System32...'; const sys32 = getFolder('C:\\System32'); if (sys32) { for (const k in sys32) delete sys32[k];
+                                            saveFS(); }
+                                    setTimeout(() => triggerBSOD(), 500); return; } if (deleteItem(currentDir, a[0])) out.textContent += '\n  Deleted: ' + a[0]; else out.textContent += '\n  Not found'; } break; case 'systeminfo': out.textContent += '\n  KteOs Pro v5.5'; break; case 'bsod': triggerBSOD(); break; case 'shutdown': shutdown(); break; default: out.textContent += '\n  Unknown: ' + c; }
+                    out.textContent += '\n' + currentDir + '>';
+                    this.value = '';
+                    out.scrollTop = out.scrollHeight; } }; }
+
+        function initCalc() { const g = document.getElementById('calcGrid'); if (g.children.length) return;
+            g.innerHTML = [
+                ['%', 'CE', 'C', '⌫'],
+                ['1/x', 'x²', '√', '÷'],
+                ['7', '8', '9', '×'],
+                ['4', '5', '6', '−'],
+                ['1', '2', '3', '+'],
+                ['±', '0', '.', '=']
+            ].map((r, ri) => r.map(k => { let cls = 'num'; if ('÷×−+'.includes(k)) cls = 'op'; if (k === '=') cls = 'eq'; if (['C', 'CE', '%', '⌫', '1/x', 'x²', '√', '±'].includes(k)) cls = 'op'; const st = (ri === 5 && k === '0') ? 'grid-column:span 1;' : ''; return `<button class="${cls}" style="${st}" onclick="calcKey('${k}')">${k}</button>`; }).join('')).join(''); }
+
+        function calcKey(k) { const r = document.getElementById('calcRes'), e = document.getElementById('calcExpr');
+            const current = parseFloat(calcVal) || 0; switch (k) { case 'C': calcVal = '0';
+                calcPrev = null;
+                calcOp = null;
+                r.textContent = '0';
+                e.textContent = ''; break; case 'CE': calcVal = '0';
+                r.textContent = '0'; break; case '⌫': calcVal = calcVal.slice(0, -1) || '0';
+                r.textContent = calcVal; break; case '%': calcVal = String(current / 100);
+                r.textContent = calcVal; break; case '1/x': calcVal = String(current ? 1 / current : 'Ошибка');
+                r.textContent = calcVal; break; case 'x²': calcVal = String(current * current);
+                r.textContent = calcVal; break; case '√': calcVal = String(current >= 0 ? Math.sqrt(current) : 'Ошибка');
+                r.textContent = calcVal; break; case '±': calcVal = String(-current);
+                r.textContent = calcVal; break; case '=': if (calcOp && calcPrev !== null) { const a = parseFloat(calcPrev), b = current; let res = 0; if (calcOp === '+') res = a + b; if (calcOp === '−') res = a - b; if (calcOp === '×') res = a * b; if (calcOp === '÷') res = b ? a / b : 'Ошибка';
+                    calcVal = String(res);
+                    r.textContent = calcVal;
+                    e.textContent = `${calcPrev} ${calcOp} ${b} =`;
+                    calcOp = null;
+                    calcPrev = null; } break; default: if ('÷×−+'.includes(k)) { if (calcOp && calcPrev) calcKey('=');
+                    calcOp = k === '×' ? '×' : k === '÷' ? '÷' : k;
+                    calcPrev = calcVal;
+                    calcVal = '0';
+                    e.textContent = `${calcPrev} ${calcOp}`; } else { if (k >= '0' && k <= '9') { calcVal = calcVal === '0' ? k : calcVal + k;
+                        r.textContent = calcVal; } else if (k === '.') { if (!calcVal.includes('.')) calcVal += '.';
+                        r.textContent = calcVal; } } } }
+
+        function renderCalendar() { const y = calDate.getFullYear(), m = calDate.getMonth();
+            document.getElementById('calTitle').textContent = new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' }).format(calDate); const g = document.getElementById('calGrid'); let fd = new Date(y, m, 1).getDay();
+            fd = fd === 0 ? 6 : fd - 1; const ld = new Date(y, m + 1, 0).getDate(), td = new Date(); let h = '<span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>'; for (let i = 0; i < fd; i++) h += '<span></span>'; for (let d = 1; d <= ld; d++) { const is = td.getDate() === d && td.getMonth() === m && td.getFullYear() === y;
+                h += `<span style="padding:4px;border-radius:50%;cursor:pointer;${is?'background:#6B5BFF;color:#fff;':''}">${d}</span>`; }
+            g.innerHTML = h; }
+
+        function changeMonth(d) { calDate.setMonth(calDate.getMonth() + d);
+            renderCalendar(); }
+
+        function initPaint() { const c = document.getElementById('pCanvas'), p = c.parentElement;
+            c.width = p.clientWidth;
+            c.height = p.clientHeight - 30; if (c.dataset.init) return;
+            c.dataset.init = '1'; const ctx = c.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, c.width, c.height); let dr = false;
+            c.onmousedown = e => { dr = true;
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX, e.offsetY); };
+            c.onmousemove = e => { if (!dr) return;
+                ctx.strokeStyle = document.getElementById('pColor').value;
+                ctx.lineWidth = document.getElementById('pSize').value;
+                ctx.lineCap = 'round';
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke(); };
+            c.onmouseup = c.onmouseleave = () => dr = false;
+            new ResizeObserver(() => { const img = ctx.getImageData(0, 0, c.width, c.height);
+                c.width = p.clientWidth;
+                c.height = p.clientHeight - 30;
+                ctx.putImageData(img, 0, 0); }).observe(p); }
+
+        function clearPaint() { const c = document.getElementById('pCanvas'); if (c) { const ctx = c.getContext('2d');
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, c.width, c.height); } }
+
+        function renderTaskmgr() { const m = (JSON.stringify(localStorage).length / 1024).toFixed(1), cpu = (Math.random() * 10 + 2).toFixed(1);
+            document.getElementById('taskmgrContent').innerHTML = `<div>🔹 KteOs — ${(m*0.4).toFixed(1)} KB</div><div>CPU: ${cpu}% | RAM: ${m} KB</div>`; }
+
+        function startTaskmgrUpdates() { if (taskmgrInterval) clearInterval(taskmgrInterval);
+            taskmgrInterval = setInterval(() => { if (document.getElementById('wnTaskmgr').classList.contains('op')) renderTaskmgr(); }, 2000); }
+
+        function renderDI() { const c = document.getElementById('desktopIcons'); if (!desktopIcons.length) { desktopIcons = DEFAULT_APPS.slice(0, 6).map((a, i) => ({ id: a.id, name: a.name, icon: a.icon, x: 10, y: 10 + i * 76, type: 'app', appId: a.id }));
+                saveDI(); }
+            c.innerHTML = desktopIcons.map(s => `<div class="di" style="left:${s.x}px;top:${s.y}px;" data-id="${s.id}" onmousedown="iconDrag(event)" ondblclick="${s.type==='app' ? `openApp('${s.appId||s.id}')` : s.type==='file' ? `openFile('${s.path}','${s.name}')` : ''}" oncontextmenu="iconContextMenu(event,'${s.id}')" ondragover="iconDragOver(event)" ondragleave="iconDragLeave(event)" ondrop="iconDrop(event,'${s.id}')"><div class="ic">${s.icon}</div><div class="lb">${s.name}</div></div>`).join(''); }
+
+        function saveDI() { localStorage.setItem('kteos_desktop', JSON.stringify(desktopIcons)); }
+
+        function iconDrag(e) { const icon = e.target.closest('.di'); if (!icon) return; const id = icon.dataset.id, r = icon.getBoundingClientRect(), ox = e.clientX - r.left, oy = e.clientY - r.top;
+            icon.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', id);
+
+            function mv(e) { const wa = document.getElementById('workArea'), wr = wa.getBoundingClientRect();
+                icon.style.left = Math.max(0, Math.min(e.clientX - ox - wr.left, wr.width - 70)) + 'px';
+                icon.style.top = Math.max(0, Math.min(e.clientY - oy - wr.top, wr.height - 60)) + 'px'; }
+
+            function up() { icon.classList.remove('dragging'); const si = desktopIcons.find(s => s.id === id); if (si) { si.x = parseInt(icon.style.left);
+                    si.y = parseInt(icon.style.top);
+                    saveDI(); }
+                document.removeEventListener('mousemove', mv);
+                document.removeEventListener('mouseup', up); }
+            document.addEventListener('mousemove', mv);
+            document.addEventListener('mouseup', up); }
+
+        function iconDragOver(e) { e.preventDefault(); e.target.closest('.di')?.classList.add('drag-over'); }
+
+        function iconDragLeave(e) { e.target.closest('.di')?.classList.remove('drag-over'); }
+
+        function iconDrop(e, targetId) { e.preventDefault();
+            e.target.closest('.di')?.classList.remove('drag-over'); const draggedId = e.dataTransfer.getData('text/plain'); if (draggedId === targetId) return; const dragged = desktopIcons.find(i => i.id === draggedId); const target = desktopIcons.find(i => i.id === targetId); if (dragged && target) { const tx = target.x,
+                    ty = target.y;
+                target.x = dragged.x;
+                target.y = dragged.y;
+                dragged.x = tx;
+                dragged.y = ty;
+                saveDI();
+                renderDI();
+                sfx('click'); } }
+
+        function iconContextMenu(e, id) { e.preventDefault(); const icon = desktopIcons.find(s => s.id === id); if (!icon) return; const cm = document.getElementById('ctxMenuDesktop');
+            cm.style.left = e.clientX + 'px';
+            cm.style.top = e.clientY + 'px';
+            cm.classList.add('sh');
+            cm.dataset.iconId = id; if (!cm.querySelector('.cm-i[data-action="deleteIcon"]')) { cm.insertAdjacentHTML('beforeend', '<div class="cm-s"></div><div class="cm-i" data-action="deleteIcon">🗑 Удалить ярлык</div>'); } }
+
+        function renderStore() { const g = document.getElementById('storeGrid'); const items = STORE_DATA[storeTab] || [];
+            g.innerHTML = items.map(item => { const owned = ownedGames.includes(item.id); let btn = ''; if (item.ia === 1) btn = '<button class="btn" onclick="clickDollar()">💵 Кликать</button>'; else if (item.ia === 2) btn = '<button class="btn" onclick="openApp(\'' + item.id + '\')">Открыть</button>'; else if (item.ia === 3) btn = '<button class="btn" onclick="changeBg(\'' + item.bg + '\')">Применить</button>'; else if (owned) btn = '<button class="btn owned">✓ Установлено</button>'; else if (item.f) btn = '<button class="btn" onclick="installGame(\'' + item.id + '\',\'' + item.p + '\',\'' + item.n + '\',\'' + item.i + '\')">📥 Бесплатно</button>'; else btn = '<div class="price">💵 ' + item.pr + ' $</div><button class="btn" ' + (dollars >= item.pr ? '' : 'disabled') + ' onclick="buyGame(\'' + item.id + '\',\'' + item.p + '\',' + item.pr + ',\'' + item.n + '\',\'' + item.i + '\')">🛒 Купить</button>'; return `<div class="store-item" onclick="showStoreModal('${item.id}')"><div class="rating">${item.r}</div><div class="ic">${item.i}</div><div class="ttl">${item.n}</div><div class="sub">${item.d}</div>${btn}</div>`; }).join('');
+            document.getElementById('dollarBalance').textContent = '💵 ' + dollars + ' $'; }
+
+        function showStoreModal(id) { const all = [...STORE_DATA.games, ...STORE_DATA.elberros, ...STORE_DATA.apps, ...STORE_DATA.wallpapers]; const item = all.find(i => i.id === id); if (!item) return;
+            document.getElementById('modalIcon').textContent = item.i;
+            document.getElementById('modalTitle').textContent = item.n;
+            document.getElementById('modalDesc').textContent = item.d;
+            document.getElementById('modalRating').textContent = 'Рейтинг: ' + item.r;
+            document.getElementById('storeModal').classList.add('op'); }
+
+        function installGame(id, p, name, icon) { if (!ownedGames.includes(id)) { ownedGames.push(id);
+                localStorage.setItem('kteos_games', JSON.stringify(ownedGames));
+                renderStore();
+                addDesktopIcon('app', name, icon || '🎮', '', id); if (!fileSystem['C:']['Games'].content[name]) { fileSystem['C:']['Games'].content[name] = { type: 'file', content: id, size: 0, created: Date.now() };
+                    saveFS(); }
+                launchGame(id, p); } }
+
+        function buyGame(id, p, pr, name, icon) { if (dollars >= pr && !ownedGames.includes(id)) { dollars -= pr;
+                ownedGames.push(id);
+                localStorage.setItem('kteos_dollars', dollars);
+                localStorage.setItem('kteos_games', JSON.stringify(ownedGames));
+                renderStore();
+                addDesktopIcon('app', name, icon || '🎮', '', id); if (!fileSystem['C:']['Games'].content[name]) { fileSystem['C:']['Games'].content[name] = { type: 'file', content: id, size: 0, created: Date.now() };
+                    saveFS(); }
+                launchGame(id, p); } else alert('Недостаточно долларов!'); }
+
+        function launchGame(id, p) { document.getElementById('gameTitle').textContent = '🎮 ' + id;
+            document.getElementById('gameFrame').src = p; const w = document.getElementById('wnGame');
+            w.classList.add('op');
+            w.style.zIndex = ++zIndex;
+            sfx('open'); }
+
+        function closeGame() { document.getElementById('gameFrame').src = '';
+            document.getElementById('wnGame').classList.remove('op');
+            checkFullscreen(); }
+
+        function clickDollar() { dollars++;
+            document.getElementById('dollarCount').textContent = dollars;
+            localStorage.setItem('kteos_dollars', dollars); if (document.getElementById('wnStore').classList.contains('op')) renderStore(); }
+
+        function triggerBSOD() { sfx('error');
+            document.querySelectorAll('.wn.op').forEach(w => w.classList.remove('op'));
+            document.getElementById('startMenu').classList.remove('op');
+            document.body.style.pointerEvents = 'none';
+            document.body.style.cursor = 'wait';
+            document.getElementById('activationCheck').textContent = '';
+            setTimeout(() => { document.getElementById('bsodGlitch').classList.add('op');
+                document.body.style.cursor = 'none'; let count = 0; const glitchInterval = setInterval(() => { document.body.style.filter = `hue-rotate(${Math.random()*360}deg) brightness(${0.5+Math.random()})`;
+                    document.body.style.transform = `translate(${(Math.random()-0.5)*10}px, ${(Math.random()-0.5)*10}px)`;
+                    document.body.style.cursor = Math.random() > 0.5 ? 'none' : 'crosshair';
+                    count++; if (count >= 20) { clearInterval(glitchInterval);
+                        document.body.style.filter = '';
+                        document.body.style.transform = '';
+                        document.body.style.cursor = 'default';
+                        document.getElementById('bsodGlitch').classList.remove('op');
+                        document.getElementById('bsod').classList.add('op');
+                        document.getElementById('bsodPct').textContent = '0% complete'; let pct = 0; const bsodInterval = setInterval(() => { pct += Math.random() * 20; if (pct >= 100) { pct = 100;
+                                clearInterval(bsodInterval);
+                                document.getElementById('activationCheck').textContent = '🔑 Проверка активации Win12 кодом: M2014';
+                                document.getElementById('activationCheck').classList.add('activation-check'); }
+                            document.getElementById('bsodPct').textContent = Math.floor(pct) + '% complete'; }, 500);
+                        document.body.style.pointerEvents = 'auto'; } }, 300); }, 1000); }
+
+        function showRecoveryMenu() { document.getElementById('bsod').classList.remove('op');
+            document.getElementById('recoveryMenu').classList.add('op'); }
+
+        function autoRepair() { document.getElementById('recoveryMenu').classList.remove('op');
+            document.getElementById('recovery').classList.add('op');
+            document.getElementById('recDesc').textContent = 'Автоматическое восстановление...'; const bar = document.getElementById('recProg'), stat = document.getElementById('recStat'); let p = 0; const int = setInterval(() => { p += 20; if (p >= 100) { p = 100;
+                    clearInterval(int);
+                    fileSystem['C:']['System32'] = { type: 'folder', content: JSON.parse(JSON.stringify(SYSTEM32_BACKUP)) };
+                    saveFS();
+                    stat.textContent = '✅ Восстановлено!';
+                    setTimeout(() => { document.getElementById('recovery').classList.remove('op');
+                        bootSystem(); }, 1500); }
+                bar.style.width = p + '%';
+                stat.textContent = ['Проверка...', 'Повреждение System32', 'Восстановление...', 'Готово'][Math.floor(p / 25)] || 'Готово'; }, 500); }
+
+        function openRecoveryCMD() { document.getElementById('recoveryMenu').classList.remove('op'); const cmd = document.getElementById('recoveryCMD'), out = document.getElementById('recoveryCmdOutput'), inp = document.getElementById('recoveryCmdInput');
+            cmd.classList.add('op');
+            out.textContent = 'KteOs Recovery CMD\nsfc /scannow — проверить\nbootrec /fixboot — загрузчик\nchkdsk — диск\nexit — выход\n\nX:\\>';
+            inp.onkeydown = function(e) { if (e.key === 'Enter') { const c = this.value.trim().toLowerCase();
+                    out.textContent += '\nX:\\>' + c; switch (c) { case 'sfc /scannow': out.textContent += '\nСканирование...\nПовреждение System32\nВосстановление...\nГотово!';
+                            fileSystem['C:']['System32'] = { type: 'folder', content: JSON.parse(JSON.stringify(SYSTEM32_BACKUP)) };
+                            saveFS(); break; case 'bootrec /fixboot': out.textContent += '\nЗагрузчик исправлен!'; break; case 'chkdsk': out.textContent += '\nОшибок не найдено.'; break; case 'exit': cmd.classList.remove('op');
+                            showRecoveryMenu(); break; default: out.textContent += '\nНеизвестная команда'; }
+                    this.value = '';
+                    out.scrollTop = out.scrollHeight; } };
+            inp.focus(); }
+
+        function restoreSystem32() { document.getElementById('recoveryMenu').classList.remove('op');
+            document.getElementById('recovery').classList.add('op');
+            document.getElementById('recDesc').textContent = 'Восстановление из бэкапа...'; const bar = document.getElementById('recProg'), stat = document.getElementById('recStat'); let p = 0; const int = setInterval(() => { p += 25; if (p >= 100) { p = 100;
+                    clearInterval(int);
+                    fileSystem['C:']['System32'] = { type: 'folder', content: JSON.parse(JSON.stringify(SYSTEM32_BACKUP)) };
+                    saveFS();
+                    stat.textContent = '✅ Готово!';
+                    setTimeout(() => { document.getElementById('recovery').classList.remove('op');
+                        bootSystem(); }, 1500); }
+                bar.style.width = p + '%'; }, 500); }
+
+        function safeMode() { document.getElementById('recoveryMenu').classList.remove('op');
+            document.body.style.background = '#000';
+            alert('🔒 БЕЗОПАСНЫЙ РЕЖИМ\nТолько Проводник и Терминал.');
+            document.querySelectorAll('.wn.op').forEach(w => { if (w.id !== 'wnExplorer' && w.id !== 'wnTerminal') w.classList.remove('op'); }); }
+
+        function systemImageRecovery() { document.getElementById('recoveryMenu').classList.remove('op'); if (confirm('⚠️ Полный сброс?')) { localStorage.clear();
+                location.reload(); } }
+
+        function shutdown() { document.getElementById('shutdownScreen').classList.add('op');
+            createBackup();
+            setTimeout(() => { document.getElementById('shutdownScreen').classList.remove('op');
+                document.getElementById('postShutdownMenu').classList.add('op');
+                document.querySelectorAll('.wn.op').forEach(w => w.classList.remove('op')); }, 3000); }
+
+        function bootSystem() { document.getElementById('postShutdownMenu').classList.remove('op');
+            document.getElementById('bootScreen').classList.add('op');
+            setTimeout(() => document.getElementById('bootScreen').classList.remove('op'), 2500); }
+
+        function deleteAllData() { if (confirm('Удалить ВСЕ данные?')) { if (confirm('ТОЧНО?')) { localStorage.clear();
+                    location.reload(); } } }
+
+        function factoryReset() { if (confirm('Заводские настройки?')) { localStorage.clear();
+                location.reload(); } }
+
+        function createBackup() { const now = new Date(); const key = 'kteos_backup_' + now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + '-' + String(now.getMinutes()).padStart(2, '0');
+            localStorage.setItem(key, JSON.stringify({ fs: fileSystem, dollars, ownedGames, desktopIcons, account, lockPassword })); const backups = Object.keys(localStorage).filter(k => k.startsWith('kteos_backup_')).sort().reverse(); if (backups.length > 5) backups.slice(5).forEach(k => localStorage.removeItem(k)); }
+
+        function renderSettings() { const content = document.getElementById('settingsContent'); const activeTab = document.querySelector('.settings-tab.active').dataset.tab; switch (activeTab) { case 'system': content.innerHTML = '<div class="settings-card"><h4>📱 Система</h4><p>KteOs Pro v5.5</p><p>Build 26000</p></div>'; break; case 'personalization': content.innerHTML = '<div class="settings-card"><h4>🎨 Персонализация</h4><label>Обои</label><select onchange="changeBg(this.value)"><option value="forest">🌲 Лес</option><option value="sunset">🌅 Закат</option><option value="mountains">🏔 Горы</option><option value="night">🌙 Ночь</option></select><br><br><button onclick="uploadWallpaperToImgBB()">📤 Загрузить через ImgBB</button></div>'; break; case 'account': content.innerHTML = '<div class="settings-card"><h4>👤 Учётная запись</h4><label>Логин</label><input type="text" id="settingsLogin" value="' + (account.login || '') + '"><label>Пароль</label><input type="password" id="settingsPass"><button onclick="saveAccountSettings()">💾 Сохранить</button></div>'; break; case 'backup': const backups = Object.keys(localStorage).filter(k => k.startsWith('kteos_backup_')).sort().reverse();
+                    content.innerHTML = '<div class="settings-card"><h4>💾 Резервные копии</h4>' + (backups.length ? backups.map(b => '<div style="margin:4px 0;">' + b.replace('kteos_backup_', '') + ' <button onclick="restoreBackup(\'' + b + '\')" style="background:var(--p);color:#fff;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:9px;">Восстановить</button></div>').join('') : 'Нет бэкапов') + '</div>'; break; case 'sound': content.innerHTML = '<div class="settings-card"><h4>🔊 Звук</h4><p>' + (isMuted ? 'Выкл' : 'Вкл') + '</p><button onclick="toggleMute()">' + (isMuted ? 'Включить' : 'Выключить') + '</button></div>'; break; } }
+
+        function saveAccountSettings() { const l = document.getElementById('settingsLogin').value.trim(); const p = document.getElementById('settingsPass').value.trim(); if (l) account.login = l; if (p) account.password = p;
+            localStorage.setItem('kteos_account', JSON.stringify(account));
+            document.getElementById('menuUser').textContent = account.login || 'User'; }
+
+        function restoreBackup(key) { const d = JSON.parse(localStorage.getItem(key)); if (d) { fileSystem = d.fs;
+                dollars = d.dollars;
+                ownedGames = d.ownedGames;
+                desktopIcons = d.desktopIcons;
+                account = d.account;
+                lockPassword = d.lockPassword;
+                saveFS();
+                saveAll();
+                alert('Восстановлено!');
+                location.reload(); } }
+
+        function saveAll() { localStorage.setItem('kteos_dollars', dollars);
+            localStorage.setItem('kteos_games', JSON.stringify(ownedGames));
+            localStorage.setItem('kteos_desktop', JSON.stringify(desktopIcons));
+            localStorage.setItem('kteos_account', JSON.stringify(account));
+            localStorage.setItem('kteos_lock', lockPassword); }
+
+        async function uploadWallpaperToImgBB() { const inp = document.createElement('input');
+            inp.type = 'file';
+            inp.accept = 'image/*';
+            inp.onchange = async function() { const file = this.files[0]; if (!file) return; const fd = new FormData();
+                fd.append('image', file); try { const r = await fetch('https://api.imgbb.com/1/upload?key=b80b9e18e607bfe48e6c03a19289c465', { method: 'POST', body: fd }); const d = await r.json(); if (d.success) { document.getElementById('wallpaper').style.background = `url(${d.data.url}) center/cover no-repeat`;
+                        localStorage.setItem('kteos_wallpaper_url', d.data.url);
+                        sfx('notify'); } } catch (e) {} };
+            inp.click(); }
+
+        function changeBg(v) { const bgs = { forest: 'linear-gradient(180deg,#0d1b2a,#1b3a4b,#2d6a4f)', sunset: 'linear-gradient(180deg,#1a0a2e,#2d1b69,#e06c53)', mountains: 'linear-gradient(180deg,#1a1a2e,#16213e,#0f3460)', night: 'linear-gradient(180deg,#0a0a14,#0d0d22,#1a0a2e)' };
+            document.getElementById('wallpaper').style.background = bgs[v] || bgs.forest;
+            localStorage.setItem('kteos_bg', v); }
+
+        function showSearch() { document.getElementById('searchOverlay').classList.add('op');
+            document.getElementById('searchInput').focus(); }
+        document.getElementById('searchInput').addEventListener('input', function() { const q = this.value.toLowerCase(), r = document.getElementById('searchResults');
+            r.innerHTML = DEFAULT_APPS.filter(a => a.name.toLowerCase().includes(q)).map(a => `<div class="search-res-item" onclick="openApp('${a.id}');this.parentElement.parentElement.classList.remove('op');">${a.icon} ${a.name}</div>`).join('') || '<div style="color:#888;padding:12px;">Ничего не найдено</div>'; });
+
+        function toggleStart() { document.getElementById('startMenu').classList.toggle('op');
+            renderStartMenu(); }
+
+        function renderStartMenu() { const allApps = [...DEFAULT_APPS];
+            ownedGames.forEach(gid => { const allGames = [...STORE_DATA.games, ...STORE_DATA.elberros]; const game = allGames.find(g => g.id === gid); if (game && !allApps.find(a => a.id === gid)) allApps.push({ id: gid, name: game.n, icon: game.i }); });
+            document.getElementById('startApps').innerHTML = allApps.map(a => `<div class="sm-i draggable" data-id="${a.id}" draggable="true" ondragstart="startDragFromStart(event,'${a.id}')" onclick="openApp('${a.id}');toggleStart();">${a.icon} ${a.name}<button class="del-btn" onclick="event.stopPropagation();removeGame('${a.id}')">✕</button></div>`).join(''); }
+
+        function startDragFromStart(e, id) { e.dataTransfer.setData('text/plain', 'start_' + id);
+            draggedStartItem = id; }
+
+        function removeGame(id) { if (confirm('Удалить игру?')) { ownedGames = ownedGames.filter(g => g !== id);
+                localStorage.setItem('kteos_games', JSON.stringify(ownedGames));
+                desktopIcons = desktopIcons.filter(i => i.appId !== id);
+                saveDI();
+                renderDI();
+                renderStartMenu(); if (document.getElementById('wnStore').classList.contains('op')) renderStore();
+                sfx('notify'); } }
+        document.getElementById('startSearch').addEventListener('input', function() { const q = this.value.toLowerCase();
+            document.getElementById('startResults').innerHTML = DEFAULT_APPS.filter(a => a.name.toLowerCase().includes(q)).map(a => `<div class="sm-res-item" onclick="openApp('${a.id}');toggleStart();">${a.icon} ${a.name}</div>`).join(''); });
+
+        document.getElementById('desktopIcons').addEventListener('dragover', function(e) { e.preventDefault(); });
+        document.getElementById('desktopIcons').addEventListener('drop', function(e) { e.preventDefault(); const data = e.dataTransfer.getData('text/plain'); if (data.startsWith('start_')) { const id = data.replace('start_', ''); const allGames = [...STORE_DATA.games, ...STORE_DATA.elberros]; const game = allGames.find(g => g.id === id); if (game && !desktopIcons.find(i => i.appId === id)) { addDesktopIcon('app', game.n, game.i, '', id);
+                    sfx('notify'); } } });
+
+        function lockScreen() { if (!lockPassword) { alert('Установите пароль в Параметрах!'); return; }
+            document.getElementById('lockscr').classList.add('op');
+            sfx('lock'); }
+
+        function unlock() { if (document.getElementById('lockIn').value === lockPassword) { document.getElementById('lockscr').classList.remove('op');
+                sfx('unlock'); } else alert('Неверный пароль!'); }
+
+        async function updateBattery() { try { const b = await navigator.getBattery();
+                document.getElementById('batStat').textContent = b.charging ? '🔌' : b.level > 0.8 ? '🔋' : '🪫'; } catch (e) { document.getElementById('batStat').textContent = '🔋'; } }
+
+        function updateNetwork() { const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            document.getElementById('netStat').textContent = c ? (c.effectiveType === '4g' ? '📶' : '📡') : '📶'; }
+
+        function updateClock() { const n = new Date();
+            document.getElementById('clockTime').textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'); }
+
+        function updateGadgets() { const n = new Date();
+            document.getElementById('gadgetClockBody').textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0') + ':' + String(n.getSeconds()).padStart(2, '0');
+            document.getElementById('gadgetCPUBody').textContent = (Math.random() * 30 + 5).toFixed(1) + '%'; }
+
+        function init() { if (!getFolder('C:\\System32') || Object.keys(getFolder('C:\\System32') || {}).length === 0) { document.getElementById('recovery').classList.add('op');
+                restoreSystem32(); }
+            document.getElementById('audStat').textContent = isMuted ? '🔇' : '🔊';
+            document.getElementById('menuUser').textContent = account.login || 'User';
+            document.getElementById('lockUser').textContent = account.login || 'User'; if (localStorage.getItem('kteos_note')) document.getElementById('notepadText').value = localStorage.getItem('kteos_note'); if (localStorage.getItem('kteos_wallpaper_url')) document.getElementById('wallpaper').style.background = `url(${localStorage.getItem('kteos_wallpaper_url')}) center/cover no-repeat`; else if (localStorage.getItem('kteos_bg')) changeBg(localStorage.getItem('kteos_bg'));
+            renderDI();
+            renderStore();
+            renderCalendar();
+            initCalc();
+            updateClock();
+            updateBattery();
+            updateNetwork();
+            setInterval(updateClock, 30000);
+            setInterval(updateBattery, 60000);
+            setInterval(updateGadgets, 1000); if (navigator.connection) navigator.connection.addEventListener('change', updateNetwork);
+            document.body.addEventListener('click', function ra() { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
+            document.addEventListener('keydown', function(e) { if (e.ctrlKey && e.key === 'f') { e.preventDefault();
+                    showSearch(); } if (e.ctrlKey && e.key === 'c' && selectedExplorerItem) clipboard = { ...selectedExplorerItem, action: 'copy' }; if (e.ctrlKey && e.key === 'v' && clipboard.name) handleCA('paste', explorerHistory[explorerHistoryIndex] || 'C:'); if (e.ctrlKey && e.key === 'x' && selectedExplorerItem) clipboard = { ...selectedExplorerItem, action: 'cut' }; if (e.key === 'Delete' && selectedExplorerItem) handleCA('delete', selectedExplorerItem.path, selectedExplorerItem.name); if (e.key === 'F2' && selectedExplorerItem) handleCA('rename', selectedExplorerItem.path, selectedExplorerItem.name); if (e.key === 'F5') renderExplorer(explorerHistory[explorerHistoryIndex] || 'C:'); if (e.key === 'Escape') { document.getElementById('searchOverlay').classList.remove('op');
+                    document.getElementById('lockscr').classList.remove('op');
+                    document.querySelectorAll('.cm').forEach(m => m.classList.remove('sh'));
+                    document.getElementById('startMenu').classList.remove('op'); } });
+            document.getElementById('btnStart').addEventListener('click', e => { e.stopPropagation();
+                toggleStart(); });
+            document.addEventListener('click', e => { const sm = document.getElementById('startMenu'); if (!sm.contains(e.target) && e.target.id !== 'btnStart') sm.classList.remove('op'); });
+            document.getElementById('tbApps').innerHTML = DEFAULT_APPS.slice(0, 6).map(a => `<button class="ti" data-app="${a.id}" onclick="openApp('${a.id}')">${a.icon}</button>`).join('');
+            document.getElementById('wallpaper').addEventListener('contextmenu', function(e) { e.preventDefault(); const cm = document.getElementById('ctxMenuDesktop');
+                cm.style.left = e.clientX + 'px';
+                cm.style.top = e.clientY + 'px';
+                cm.classList.add('sh');
+                cm.dataset.path = explorerHistory[explorerHistoryIndex] || 'C:'; });
+            document.querySelectorAll('.store-tab').forEach(tab => { tab.addEventListener('click', function() { document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    storeTab = this.dataset.tab;
+                    renderStore(); }); });
+            document.querySelectorAll('.settings-tab').forEach(tab => { tab.addEventListener('click', function() { document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    renderSettings(); }); });
+            console.log('✅ KteOs Pro v5.5 готов! Папка Games, ELBERR по главам, бар скрывается!'); }
+        init();
+    </script>
+</body>
+</html>

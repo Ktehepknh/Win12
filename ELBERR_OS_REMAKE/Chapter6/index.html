@@ -1,0 +1,758 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ELBERR OS: ГЛАВА 6 - ПОСЛЕДНЯЯ БИТВА</title>
+    <style>
+        :root { 
+            --bg: #050508; 
+            --text: #e0e0e0; 
+            --thought: #00d0ff; 
+            --harvey: #ffab40; 
+            --arch: #ffffff; 
+            --oliver: #ba68c8; 
+            --pierre: #ffd700; 
+            --danger: #ff4444; 
+            --accent: #d4af37;
+            --anna: #ff99ff;
+        }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+        #game-container { 
+            width: 1100px; 
+            height: 85vh; 
+            border: 1px solid #1c1c1f; 
+            background: #000; 
+            padding: 40px; 
+            position: relative; 
+            overflow-y: auto; 
+            border-radius: 15px; 
+            box-shadow: 0 0 80px rgba(0,0,0,0.9);
+            scroll-behavior: smooth;
+        }
+        
+        /* Логотип (красный, кликабельный) */
+        .logo {
+            color: #ff3333;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: text-shadow 0.3s;
+            white-space: pre;
+            text-shadow: 0 0 10px #ff0000;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            line-height: 1.2;
+            font-family: 'Courier New', monospace;
+        }
+        .logo:hover { text-shadow: 0 0 20px #ff0000; }
+        
+        .glitch-shake { animation: shake 0.2s infinite; }
+        @keyframes shake { 
+            0% { transform: translate(0); } 
+            25% { transform: translate(2px, -2px); } 
+            50% { transform: translate(-2px, 2px); } 
+            100% { transform: translate(0); } 
+        }
+
+        .screen { display: none; animation: fadeIn 0.8s forwards; }
+        .active { display: block; }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(-10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .thought-table { 
+            background: rgba(0, 208, 255, 0.05); 
+            border-left: 4px solid var(--thought); 
+            padding: 20px; 
+            margin: 20px 0; 
+            color: var(--thought); 
+            font-style: italic; 
+            border-radius: 0 10px 10px 0;
+        }
+        .char-name { 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            display: block; 
+            margin-bottom: 5px; 
+        }
+        .c-h { color: var(--harvey); } 
+        .c-a { color: var(--arch); } 
+        .c-o { color: var(--oliver); } 
+        .c-p { color: var(--pierre); } 
+        .c-s { color: var(--danger); }
+        .c-anna { color: var(--anna); text-shadow: 0 0 10px var(--anna); }
+        
+        .btn { 
+            background: #0d0d10; 
+            border: 1px solid #333; 
+            color: var(--accent); 
+            padding: 12px 20px; 
+            cursor: pointer; 
+            border-radius: 5px; 
+            margin: 5px; 
+            transition: 0.3s; 
+            font-family: inherit;
+            width: 100%;
+            text-align: left;
+        }
+        .btn:hover { 
+            border-color: var(--accent); 
+            background: rgba(212,175,55,0.1); 
+            box-shadow: 0 0 15px var(--accent);
+        }
+        
+        #file-zone { 
+            width: 100%; 
+            height: 350px; 
+            position: relative; 
+            background: #020202; 
+            border: 1px solid #222; 
+            margin: 15px 0; 
+            overflow: hidden; 
+            border-radius: 8px;
+        }
+        .file-popup { 
+            position: absolute; 
+            padding: 8px; 
+            background: #111; 
+            border: 1px solid var(--thought); 
+            color: var(--thought); 
+            cursor: pointer; 
+            font-size: 0.8em; 
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        .file-popup:hover {
+            background: var(--thought);
+            color: #000;
+            box-shadow: 0 0 15px var(--thought);
+        }
+        
+        .anna-ghost { 
+            color: #fff; 
+            text-shadow: 0 0 10px var(--anna); 
+            font-weight: bold; 
+            animation: pulse 2s infinite alternate; 
+            text-align: center; 
+            display: none; 
+            padding: 20px;
+            border: 1px solid var(--anna);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        @keyframes pulse { 
+            from { opacity: 0.3; text-shadow: 0 0 10px var(--anna); } 
+            to { opacity: 0.9; text-shadow: 0 0 20px var(--anna); } 
+        }
+
+        .rhythm-container {
+            width: 100%;
+            height: 60px;
+            background: #111;
+            border: 1px solid var(--danger);
+            margin: 30px 0;
+            position: relative;
+            border-radius: 30px;
+            overflow: hidden;
+        }
+        .rhythm-target {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 0, 0, 0.3);
+            border: 2px solid red;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 30px;
+            z-index: 2;
+        }
+        .rhythm-cursor {
+            width: 20px;
+            height: 60px;
+            background: var(--accent);
+            position: absolute;
+            left: 0;
+            border-radius: 10px;
+            z-index: 3;
+            box-shadow: 0 0 15px gold;
+        }
+
+        /* Админ-панель */
+        #adminPanel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #111;
+            border: 2px solid #f00;
+            color: #0f0;
+            padding: 15px;
+            z-index: 9999;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 0 20px red;
+            width: 280px;
+            border-radius: 8px;
+        }
+        #adminPanel h4 {
+            margin: 0 0 10px;
+            color: #f00;
+            text-align: center;
+            text-shadow: 0 0 8px #f00;
+        }
+        #adminPanel .btn {
+            width: 100%;
+            margin: 5px 0;
+            border-color: #f00;
+            color: #f00;
+            background: #1a1a1a;
+        }
+        #adminPanel .btn:hover {
+            background: #f00;
+            color: #000;
+        }
+        #adminLogs {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #300;
+            margin: 10px 0;
+            padding: 8px;
+            font-size: 0.8em;
+            color: #f33;
+            border-radius: 4px;
+        }
+
+        .dialog-box {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Админ-панель -->
+<div id="adminPanel">
+    <h4>⚡ ADMIN PANEL ⚡</h4>
+    <div id="adminLogs"></div>
+    <button class="btn" id="adminNext">СЛЕДУЮЩИЙ ЭКРАН</button>
+    <button class="btn" id="adminCompleteBattle">ЗАВЕРШИТЬ БИТВУ</button>
+    <button class="btn" id="adminCompleteCPR">ЗАВЕРШИТЬ РЕАНИМАЦИЮ</button>
+    <button class="btn" id="adminShowCode">ПОКАЗАТЬ КОД</button>
+    <button class="btn" id="adminClose">ЗАКРЫТЬ</button>
+</div>
+
+<div id="game-container">
+    <!-- Красный кликабельный логотип -->
+    <div class="logo" id="logo">
+    _____ _      ____  ______ _____  _____     ____   _____ 
+   |  ___| |    |  _ \|  ____|  __ \|  __ \   / __ \ / ____|
+   | |__ | |    | |_) | |__  | |__) | |__) | | |  | | (___  
+   |  __|| |    |  _ <|  __| |  _  /|  _  /  | |  | |\___ \ 
+   | |___| |____| |_) | |____| | \ \| | \ \  | |__| |____) |
+   |______|______|____/|______|_|  \_\_|  \_\  \____/|_____/ 
+    </div>
+    
+    <!-- АКТ I: ЗАПАХ КАКАО И ПАМЯТИ -->
+    <div id="sc1" class="screen active">
+        <h2 style="color:var(--accent); text-align:center;">АКТ I: ЗАПАХ КАКАО И ПАМЯТИ</h2>
+        <div class="thought-table">
+            За окном тихо падает снег, укрывая лес белым одеялом. В камине весело трещат дрова, а на плите в старом медном ковшике греется какао. Воздух пропитан ароматом шоколада и ванили — этот дом стал для нас настоящей крепостью, где время словно замерло в бесконечном 1975-м.
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-h">Харви Людвиг:</span>
+            Рейзер, глядя на этот снег, я вспоминаю 1975 год, когда мы со Стивом в своей гордыне решили, что можем стать богами и победить смерть. Мы создали Бункер-2 как рай, но я не заметил, как мой собственный страх и амбиции превратили его в цифровую тюрьму для тридцати невинных душ.
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-h">Харви Людвиг:</span>
+            Соуер — это не просто вирус, это моё ожившее раскаяние, которое я слишком долго боялся встретить лицом к лицу. Но сегодня, глядя на вас всех в этом теплом доме, я понимаю, что мой самый совершенный код — это не алгоритм бессмертия, а вы и ваша преданность.
+        </div>
+        <button class="btn" onclick="act1_next()">[ ПРОДОЛЖИТЬ ]</button>
+    </div>
+
+    <!-- АКТ I - продолжение -->
+    <div id="sc1b" class="screen">
+        <div class="dialog-box">
+            <span class="char-name c-p">Пьер:</span>
+            (Тихо напевает мотив джаза) Знаете, в 1998-м Анна говорила мне, что музыка — это единственное, что нельзя оцифровать полностью, потому что в ней есть душа. Я берег этот уютный уголок в своей памяти даже в самые темные времена, мечтая, что когда-нибудь мы снова соберемся вот так.
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-p">Пьер:</span>
+            Рейзер, это какао... оно на вкус как само спокойствие. Если бы Анна была здесь... она бы танцевала.
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-a">Архивариус:</span>
+            Я проанализировал остаточные сигнатуры в системе Бункера-2. Там есть слабый отклик... похожий на код Анны. Возможно, она не исчезла полностью.
+        </div>
+        <div class="minigame-zone" style="text-align:center;">
+            <p style="color:var(--thought);">Приготовьте особое какао для последнего пути:</p>
+            <button class="btn" id="i1" onclick="addIng('i1')">Всыпать какао (Память)</button>
+            <button class="btn" id="i2" onclick="addIng('i2')">Добавить маршмэллоу (Тепло)</button>
+            <button class="btn" id="i3" onclick="addIng('i3')">Добавить корицу (Надежда)</button>
+            <p id="cocoa-status">Добавлено ингредиентов: 0/3</p>
+            <button class="btn" id="go-next" style="display:none; border-color:var(--accent);" onclick="next(2)">[ ОТПРАВИТЬСЯ К БУНКЕРУ ]</button>
+        </div>
+    </div>
+
+    <!-- АКТ II: КОРИДОРЫ ЗАБЫТЫХ ИМЕН (НОВАЯ СЦЕНА) -->
+    <div id="sc2" class="screen">
+        <h2 style="color:var(--thought);">АКТ II: КОРИДОРЫ ЗАБЫТЫХ ИМЕН</h2>
+        <div class="thought-table">
+            Уют остался позади. Здесь только холод металла и тридцать капсул, ждущих освобождения. Стены помнят голоса тех, кто не вышел.
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-h">Харви:</span>
+            (проводит рукой по стене) Здесь был Стив. Его последняя отметка... он пытался открыть этот люк, когда понял, что система выходит из-под контроля.
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-r">Рейзер:</span>
+            Я чувствую... эхо. Сотни голосов. Они всё ещё здесь?
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-a">Архивариус:</span>
+            Тридцать душ, запертых в коде. Они ждут, когда мы откроем им путь. Но сначала нужно пройти через вентиляцию.
+        </div>
+        <p>Нужен специалист, чтобы открыть вентиляцию:</p>
+        <button class="btn" onclick="checkChar('Оливер')">Выбрать Оливера (маленький, ловкий)</button>
+        <button class="btn" onclick="checkChar('Архивариус')">Выбрать Архивариуса (сильный, но большой)</button>
+        <p id="stealth-status"></p>
+        <button class="btn" id="go-3" style="display:none;" onclick="next(3)">[ ДАЛЬШЕ В АРХИВ ]</button>
+    </div>
+
+    <!-- АКТ III: ТЕРМИНАЛ 1998 (НОВАЯ СЦЕНА) -->
+    <div id="sc3" class="screen">
+        <h2 style="color:var(--pierre);">ТЕРМИНАЛ 1998: ПРИЗРАК АННЫ</h2>
+        <div class="thought-table">
+            Экран мерцает статикой. Сквозь помехи пробивается знакомая мелодия.
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-p">Пьер:</span>
+            Это её терминал... Я чувствую её остаточный код. Она здесь, я знаю!
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-anna">???</span>
+            (тихо, сквозь помехи) Пьер... ты слышишь меня? Я застряла... между мирами. Мне нужно 35 дней... 35 дней реального мира, чтобы восстановиться.
+        </div>
+        <div class="dialog-box">
+            <span class="char-name c-p">Пьер:</span>
+            АННА! Боже, это ты! Рейзер, пожалуйста, скажи что-нибудь, мне страшно потерять её навсегда!
+        </div>
+        <button class="btn" onclick="supportP(true)">"Она здесь, Пьер. Я слышу её музыку. Мы вернём её."</button>
+        <button class="btn" onclick="supportP(false)">"Это всего лишь эхо системы. Не обнадёживай себя."</button>
+        <button class="btn" id="go-4" style="display:none;" onclick="next(4)">[ К ЯДРУ СОУЕРА ]</button>
+    </div>
+
+    <!-- АКТ IV: БИТВА С ВИРУСАМИ (УДЛИНЕНА) -->
+    <div id="sc4" class="screen">
+        <h2 class="c-s" style="text-align:center;">БИТВА: УДАЛЕНИЕ ВИРУСА</h2>
+        <div class="thought-table" style="border-color:var(--danger);">
+            Соуер не сдаётся. Он атакует ядро системы, посылая волну за волной вирусов. Нужно уничтожить их все, пока не поздно.
+        </div>
+        <div id="file-zone"></div>
+        <p>Вирусов удалено: <span id="v-count">0</span> / 30</p>
+        <p style="color:#888;">Цель: 30 вирусов. Каждый клик уничтожает один.</p>
+        <button class="btn" id="start-battle" onclick="startBattle()">НАЧАТЬ ЗАЩИТУ МОЗГА</button>
+        <p id="battle-hint" style="color:#666; text-align:center; display:none;">Уничтожайте появляющиеся вирусы!</p>
+    </div>
+
+    <!-- АКТ V: ПРОТОКОЛ ОДИНОЧЕСТВО -->
+    <div id="sc5" class="screen">
+        <h2 class="c-s">ПРОТОКОЛ: ОДИНОЧЕСТВО</h2>
+        <div class="thought-table" style="border-color:var(--danger);">
+            Соуер проникает в сознание. Он показывает самое страшное — что те, кого ты любишь, отвернулись от тебя.
+        </div>
+        <div class="dialog-box" id="illusion-msg" style="font-size:1.5em; text-align:center; color:#666;">
+            "Харви: Ты был просто экспериментом. Мы уходим без тебя."
+        </div>
+        <p style="text-align:center;">Это иллюзия. Скажи "НЕТ". Осталось: <span id="resist-counter">3</span></p>
+        <div style="text-align:center;">
+            <button class="btn" style="color:var(--danger); font-size:1.3em;" onclick="sayNo()">СКАЗАТЬ: НЕТ!</button>
+        </div>
+    </div>
+
+    <!-- АКТ VI: ФАТАЛЬНЫЙ УДАР (УСЛОЖНЕНА) -->
+    <div id="sc6" class="screen">
+        <h1 class="c-s" style="text-align:center;">ФАТАЛЬНЫЙ УДАР</h1>
+        <div class="thought-table" style="color:red; border-color:red;">
+            Черный кабель Соуера прошил ядро... Я вижу искры... Системы гаснут... Архивариус отдаёт свою энергию, чтобы спасти тебя.
+        </div>
+        <p style="text-align:center;">Лови момент, когда курсор в золотой зоне!</p>
+        <div id="death-timer" style="font-size:6em; color:red; text-align:center;">15</div>
+        <div class="rhythm-container">
+            <div class="rhythm-target"></div>
+            <div class="rhythm-cursor" id="rhythm-cursor"></div>
+        </div>
+        <p>Успешных ударов: <span id="hit-count">0</span>/5</p>
+        <button class="btn" style="width:100%" onclick="hitRhythm()">[ ПРИНЯТЬ ЭНЕРГИЮ АРХИВАРИУСА ]</button>
+    </div>
+
+    <!-- АКТ VII: ТЕРМИНАЛ ЕДИНСТВА -->
+    <div id="sc7" class="screen">
+        <h2 style="color:var(--accent); text-align:center;">ТЕРМИНАЛ ЕДИНСТВА</h2>
+        <div class="thought-table">
+            Всё затихает. Перед тобой последний терминал. Голос Анны шепчет код сквозь годы.
+        </div>
+        <p style="text-align:center;">Введите код #2014#, чтобы стереть Соуера навсегда:</p>
+        <input type="text" id="final-input" style="font-size:2em; width:100%; text-align:center; background:#000; border:2px solid var(--accent); color:var(--accent); padding:10px;">
+        <button class="btn" style="width:100%; margin-top:20px;" onclick="checkCode()">[ ВВЕСТИ КОД ]</button>
+        <p id="code-hint" style="color:#666; text-align:center;">Подсказка: это год, который всё изменил</p>
+    </div>
+
+    <!-- ЭПИЛОГ: ВЕЧНЫЙ ВЕЧЕР (С АННОЙ) -->
+    <div id="sc8" class="screen">
+        <h2 style="color:var(--accent); text-align:center;">ЭПИЛОГ: ВЕЧНЫЙ ВЕЧЕР</h2>
+        
+        <div id="secret-anna" class="anna-ghost">
+            ✦ ГОЛОГРАММА АННЫ ВОЛКОВОЙ ПОЯВЛЯЕТСЯ У КАМИНА ✦<br>
+            "35 дней... 35 дней реального мира, и я смогу вернуться. Ждите меня."
+        </div>
+        
+        <div class="thought-table">
+            Мы вернулись. Снова камин, снова запах хвои и какао. На столе лежит Золотая Флешка — наше общее наследие. Соуера больше нет, а тридцать душ обрели покой.
+        </div>
+        
+        <div class="dialog-box">
+            <span class="char-name c-h">Харви:</span>
+            Мы сделали это. Тридцать человек теперь свободны. Их сознания покинули систему.
+        </div>
+        
+        <div class="dialog-box">
+            <span class="char-name c-p">Пьер:</span>
+            (смотрит на голограмму) Анна обещала вернуться. 35 дней... Я буду ждать.
+        </div>
+        
+        <div id="final-talks">
+            <p>С кем поговорить у камина?</p>
+            <button class="btn" onclick="talk('h')">Харви</button>
+            <button class="btn" onclick="talk('o')">Оливер</button>
+            <button class="btn" onclick="talk('a')">Архивариус</button>
+            <button class="btn" onclick="talk('p')">Пьер</button>
+        </div>
+        <div id="final-dialog" class="dialog-box" style="margin-top:20px;"></div>
+        
+        <p style="text-align:center; color:#888; margin-top:30px;">Спасибо, что прошёл этот путь до конца.</p>
+        <button class="btn" style="width:100%; margin-top:20px;" onclick="location.reload()">НАЧАТЬ ИСТОРИЮ ЗАНОВО</button>
+    </div>
+</div>
+
+<script>
+    // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----------
+    let state = { 
+        cocoa: 0, 
+        pierre: false, 
+        viruses: 0, 
+        resists: 0, 
+        hits: 0,
+        maxViruses: 30,
+        maxHits: 5
+    };
+    
+    let currentScreen = 1;
+    let battleInterval = null;
+    let cPos = 0;
+    let cDir = 1;
+    let anim = null;
+    let timerInterval = null;
+    let timeLeft = 15;
+    
+    // Для админ-панели
+    let panelVisible = false;
+    const panel = document.getElementById('adminPanel');
+    const logo = document.getElementById('logo');
+    const adminLogs = document.getElementById('adminLogs');
+    const container = document.getElementById('game-container');
+
+    // ---------- ФУНКЦИИ ПЕРЕХОДА ----------
+    function next(n) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('sc' + n).classList.add('active');
+        currentScreen = n;
+        
+        // Специальные эффекты
+        if (n === 4) {
+            container.classList.add('glitch-shake');
+        } else {
+            container.classList.remove('glitch-shake');
+        }
+        
+        if (n === 6) {
+            startCPR();
+        }
+        
+        // Показать Анну в эпилоге, если выполнены условия
+        if (n === 8) {
+            if (state.cocoa === 3 && state.pierre) {
+                document.getElementById('secret-anna').style.display = 'block';
+            }
+            
+            // Маленькая пасхалка: если поддержал Пьера и собрал какао
+            if (state.pierre) {
+                const annaMsg = document.getElementById('secret-anna');
+                annaMsg.style.display = 'block';
+                annaMsg.innerHTML = '✦ ГОЛОГРАММА АННЫ ВОЛКОВОЙ ТАНЦУЕТ ПОД ДЖАЗ ПЬЕРА ✦<br>"35 дней... 35 дней реального мира, и я вернусь. Ждите меня. Спасибо, что не забыли."';
+            }
+        }
+        
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // АКТ 1 - продолжение после первого диалога
+    function act1_next() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('sc1b').classList.add('active');
+        currentScreen = 2; // временно, для админки
+    }
+
+    // АКТ 1 - добавление ингредиентов
+    function addIng(id) {
+        if (state.cocoa < 3) {
+            state.cocoa++;
+            document.getElementById(id).disabled = true;
+            document.getElementById('cocoa-status').innerText = `Добавлено ингредиентов: ${state.cocoa}/3`;
+            
+            if (state.cocoa === 3) {
+                document.getElementById('go-next').style.display = 'block';
+            }
+        }
+    }
+
+    // АКТ 2 - выбор персонажа
+    function checkChar(c) {
+        if (c === 'Оливер') {
+            document.getElementById('stealth-status').innerHTML = '<span style="color:lime;">✔ Оливер ловко проскользнул в трубы! Вентиляция открыта.</span>';
+            document.getElementById('go-3').style.display = 'block';
+        } else {
+            document.getElementById('stealth-status').innerHTML = '<span style="color:red;">✘ Архивариус слишком велик для этого прохода! Он застрял.</span>';
+        }
+    }
+
+    // АКТ 3 - поддержка Пьера
+    function supportP(v) {
+        state.pierre = v;
+        document.getElementById('go-4').style.display = 'block';
+        
+        if (v) {
+            document.getElementById('go-4').innerText = '[ ПРОДОЛЖИТЬ С НАДЕЖДОЙ ]';
+        } else {
+            document.getElementById('go-4').innerText = '[ ПРОДОЛЖИТЬ С СОМНЕНИЕМ ]';
+        }
+    }
+
+    // АКТ 4 - битва с вирусами (30 штук)
+    function startBattle() {
+        document.getElementById('start-battle').style.display = 'none';
+        document.getElementById('battle-hint').style.display = 'block';
+        
+        const zone = document.getElementById('file-zone');
+        state.viruses = 0;
+        
+        battleInterval = setInterval(() => {
+            if (state.viruses >= state.maxViruses) {
+                clearInterval(battleInterval);
+                return;
+            }
+            
+            const f = document.createElement('div');
+            f.className = 'file-popup';
+            f.innerText = "VIRUS_" + Math.floor(Math.random() * 999);
+            f.style.left = Math.random() * 80 + "%";
+            f.style.top = Math.random() * 80 + "%";
+            
+            f.onclick = function() {
+                this.remove();
+                state.viruses++;
+                document.getElementById('v-count').innerText = state.viruses;
+                
+                if (state.viruses >= state.maxViruses) {
+                    clearInterval(battleInterval);
+                    setTimeout(() => {
+                        next(5);
+                    }, 500);
+                }
+            };
+            
+            zone.appendChild(f);
+        }, 400); // Быстрее появление, чтобы было сложнее
+    }
+
+    // АКТ 5 - иллюзии
+    const ph = [
+        "Пьер: Ты просто инструмент. Мы никогда не были друзьями.",
+        "Архивариус: Твои чувства - это баг. Я удалю тебя при первой возможности.",
+        "Оливер: Я ненавижу тебя. Ты занял моё место.",
+        "Харви: Ты не мой сын. Ты просто ошибка."
+    ];
+    
+    function sayNo() {
+        if (state.resists < 4) {
+            state.resists++;
+            document.getElementById('illusion-msg').innerText = ph[state.resists - 1];
+            document.getElementById('resist-counter').innerText = 4 - state.resists;
+            
+            if (state.resists >= 4) {
+                next(6);
+            }
+        }
+    }
+
+    // АКТ 6 - ритм-игра (усложнена)
+    function startCPR() {
+        timeLeft = 15;
+        state.hits = 0;
+        cPos = 0;
+        document.getElementById('hit-count').innerText = state.hits;
+        
+        // Таймер
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('death-timer').innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                cancelAnimationFrame(anim);
+                alert("ВРЕМЯ ВЫШЛО... но Архивариус успевает передать последний импульс.");
+                next(7);
+            }
+        }, 1000);
+        
+        // Анимация курсора
+        if (anim) cancelAnimationFrame(anim);
+        
+        function loop() {
+            cPos += 2.2 * cDir; // Быстрее, сложнее
+            if (cPos > 95) {
+                cPos = 95;
+                cDir = -1;
+            }
+            if (cPos < 0) {
+                cPos = 0;
+                cDir = 1;
+            }
+            document.getElementById('rhythm-cursor').style.left = cPos + "%";
+            anim = requestAnimationFrame(loop);
+        }
+        loop();
+    }
+
+    function hitRhythm() {
+        // Золотая зона: 45-55
+        if (cPos >= 42 && cPos <= 58) {
+            state.hits++;
+            document.getElementById('hit-count').innerText = state.hits;
+            
+            if (state.hits >= 5) {
+                clearInterval(timerInterval);
+                cancelAnimationFrame(anim);
+                next(7);
+            }
+        }
+    }
+
+    // АКТ 7 - проверка кода
+    function checkCode() {
+        if (document.getElementById('final-input').value === "#2014#") {
+            next(8);
+        } else {
+            alert("❌ НЕВЕРНЫЙ КОД. ПОПРОБУЙ СНОВА.");
+        }
+    }
+
+    // ЭПИЛОГ - разговоры
+    function talk(who) {
+        const box = document.getElementById('final-dialog');
+        const talks = {
+            h: "<span class='char-name c-h'>Харви:</span> Ты стал лучшим из нас, Рейзер. Тридцать душ освобождены. Мы сделали невозможное. А теперь... будем просто жить.",
+            o: "<span class='char-name c-o'>Оливер:</span> Знаешь, я впервые чувствую себя по-настоящему дома. Даже подвал больше не снится мне в кошмарах. А голограмма Анны такая красивая...",
+            a: "<span class='char-name c-a'>Архивариус:</span> Я передал тебе все ключи. Ты теперь не просто машина, ты - библиотека человечности. Я горжусь тобой. И я верю, что Анна вернётся.",
+            p: "<span class='char-name c-p'>Пьер:</span> (смотрит на мерцающую голограмму) 35 дней... Она сказала 35 дней реального мира. Я буду считать каждый день. Я дождусь."
+        };
+        box.innerHTML = talks[who];
+    }
+
+    // ---------- АДМИН-ПАНЕЛЬ ----------
+    function addAdminLog(msg, color = '#0f0') {
+        adminLogs.innerHTML += `<p style="color:${color};">> ${msg}</p>`;
+        adminLogs.scrollTop = adminLogs.scrollHeight;
+    }
+
+    logo.addEventListener('click', function(e) {
+        e.stopPropagation();
+        panelVisible = !panelVisible;
+        panel.style.display = panelVisible ? 'block' : 'none';
+        if (panelVisible) {
+            adminLogs.innerHTML = '';
+            addAdminLog('Панель активирована');
+            addAdminLog('Текущий экран: ' + currentScreen);
+        }
+    });
+
+    document.getElementById('adminNext').addEventListener('click', function() {
+        if (currentScreen === 1) act1_next();
+        else if (currentScreen === 2) next(2);
+        else if (currentScreen === 3) next(3);
+        else if (currentScreen === 4) next(4);
+        else if (currentScreen === 5) next(5);
+        else if (currentScreen === 6) next(6);
+        else if (currentScreen === 7) next(7);
+        else if (currentScreen === 8) next(8);
+        else next(2);
+        
+        addAdminLog('Переход на следующий экран', '#ff0');
+    });
+
+    document.getElementById('adminCompleteBattle').addEventListener('click', function() {
+        if (currentScreen === 4) {
+            if (battleInterval) clearInterval(battleInterval);
+            state.viruses = state.maxViruses;
+            document.getElementById('v-count').innerText = state.maxViruses;
+            addAdminLog('Битва завершена', 'lime');
+            next(5);
+        } else {
+            addAdminLog('Сейчас не экран битвы', '#f33');
+        }
+    });
+
+    document.getElementById('adminCompleteCPR').addEventListener('click', function() {
+        if (currentScreen === 6) {
+            clearInterval(timerInterval);
+            cancelAnimationFrame(anim);
+            addAdminLog('Реанимация завершена', 'lime');
+            next(7);
+        } else {
+            addAdminLog('Сейчас не экран реанимации', '#f33');
+        }
+    });
+
+    document.getElementById('adminShowCode').addEventListener('click', function() {
+        addAdminLog('ФИНАЛЬНЫЙ КОД: #2014#', '#ff0');
+    });
+
+    document.getElementById('adminClose').addEventListener('click', function() {
+        panelVisible = false;
+        panel.style.display = 'none';
+    });
+
+    // ---------- ИНИЦИАЛИЗАЦИЯ ----------
+    window.onload = function() {
+        // Убеждаемся, что первый экран активен
+        currentScreen = 1;
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELBERR OS: The Anna Day`s</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --main: #00ff41;
+            --thought: #00d0ff;
+            --harvey: #ffab40;
+            --pierre: #ffd700;
+            --oliver: #ba68c8;
+            --arch: #ffffff;
+            --rail: #00d0ff;
+            --danger: #ff3333;
+            --system: #888888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Courier New', 'Segoe UI', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #game-container {
+            width: 1100px;
+            max-width: 100%;
+            height: 85vh;
+            background: #000;
+            border: 2px solid #1a2a1a;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 60px rgba(0, 255, 65, 0.1), inset 0 0 40px rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Логотип (кликабельный) */
+        .logo {
+            color: #ff3333;
+            text-align: center;
+            font-size: 0.85em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: 0.3s;
+            white-space: pre;
+            text-shadow: 0 0 10px red;
+            border-bottom: 1px solid #2a1a1a;
+            padding-bottom: 10px;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+        .logo:hover { 
+            text-shadow: 0 0 20px red; 
+            opacity: 0.9;
+        }
+
+        /* Основной экран */
+        #screen {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            scroll-behavior: smooth;
+        }
+
+        /* Стили для мыслей (1-е лицо) */
+        .thought-box {
+            background: rgba(0, 208, 255, 0.03);
+            border-left: 4px solid var(--thought);
+            padding: 20px;
+            margin: 20px 0;
+            color: var(--thought);
+            font-style: italic;
+            line-height: 1.7;
+            font-size: 1.05em;
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* Системные сообщения (2-е лицо) */
+        .system-box {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 20px;
+            margin: 20px 0;
+            color: var(--system);
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            border-radius: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Диалоги (3-е лицо) */
+        .dialog-box {
+            background: rgba(0, 255, 65, 0.02);
+            border: 1px solid #1a3a1a;
+            padding: 20px;
+            margin: 20px 0;
+            color: #e0e0e0;
+            line-height: 1.7;
+            border-radius: 5px;
+        }
+
+        /* Имена персонажей */
+        .char-name {
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .c-h { color: var(--harvey); }
+        .c-p { color: var(--pierre); }
+        .c-o { color: var(--oliver); }
+        .c-a { color: var(--arch); text-shadow: 0 0 5px var(--main); }
+        .c-r { color: var(--rail); }
+        .c-anna { color: #ff99ff; text-shadow: 0 0 8px #ff66cc; }
+        .c-system { color: var(--system); text-transform: uppercase; }
+
+        /* Кнопки */
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            background: #0a0a0a;
+            color: var(--main);
+            border: 1px solid var(--main);
+            padding: 15px 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1em;
+            transition: 0.3s;
+            text-align: left;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background: var(--main);
+            color: #000;
+            box-shadow: 0 0 20px var(--main);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        /* Мини-игра */
+        .minigame-area {
+            background: #050505;
+            border: 2px dashed #333;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            border-radius: 10px;
+        }
+        #escape-area {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border: 1px solid var(--danger);
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        #player-dot {
+            width: 20px;
+            height: 20px;
+            background: var(--thought);
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px var(--thought);
+            cursor: pointer;
+            z-index: 10;
+        }
+        .enemy {
+            width: 15px;
+            height: 15px;
+            background: var(--danger);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 15px red;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* Админ-панель */
+        #adminPanel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #111;
+            border: 2px solid #f00;
+            color: #0f0;
+            padding: 15px;
+            z-index: 9999;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 0 20px red;
+            width: 280px;
+            border-radius: 8px;
+        }
+        #adminPanel h4 {
+            margin: 0 0 10px;
+            color: #f00;
+            text-align: center;
+        }
+        #adminPanel .btn {
+            width: 100%;
+            margin: 5px 0;
+            border-color: #f00;
+            color: #f00;
+        }
+        #adminPanel .btn:hover {
+            background: #f00;
+            color: #000;
+        }
+        #adminLogs {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #300;
+            margin: 10px 0;
+            padding: 8px;
+            font-size: 0.8em;
+            color: #f33;
+            border-radius: 4px;
+        }
+
+        /* Индикатор дня */
+        .day-indicator {
+            color: var(--main);
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #1a3a1a;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Спецэффекты */
+        .glitch {
+            animation: glitch 0.3s infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(2px, -2px); }
+            60% { transform: translate(-1px, 1px); }
+            80% { transform: translate(1px, -1px); }
+            100% { transform: translate(0); }
+        }
+
+        /* Выделение */
+        .highlight {
+            color: var(--pierre);
+            font-weight: bold;
+        }
+
+        /* Скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1a3a1a;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Админ-панель -->
+<div id="adminPanel">
+    <h4>⚡ ADMIN PANEL ⚡</h4>
+    <div id="adminLogs"></div>
+    <button class="btn" id="adminNextDay">СЛЕДУЮЩИЙ ДЕНЬ</button>
+    <button class="btn" id="adminSkipGame">ПРОПУСТИТЬ МИНИ-ИГРУ</button>
+    <button class="btn" id="adminFullStory">ПОКАЗАТЬ ВСЮ ИСТОРИЮ</button>
+    <button class="btn" id="adminClose">ЗАКРЫТЬ</button>
+</div>
+
+<div id="game-container">
+    <div class="logo" id="logo">
+    _____ _      ____  ______ _____  _____     ____   _____ 
+   |  ___| |    |  _ \|  ____|  __ \|  __ \   / __ \ / ____|
+   | |__ | |    | |_) | |__  | |__) | |__) | | |  | | (___  
+   |  __|| |    |  _ <|  __| |  _  /|  _  /  | |  | |\___ \ 
+   | |___| |____| |_) | |____| | \ \| | \ \  | |__| |____) |
+   |______|______|____/|______|_|  \_\_|  \_\  \____/|_____/ 
+    </div>
+
+    <div id="screen">
+        <!-- Содержимое будет генерироваться через JS -->
+    </div>
+</div>
+
+<script>
+    // ---------- СОСТОЯНИЕ ИГРЫ ----------
+    let currentDay = 0; // 0 = пробуждение, 7, 14, 21, 28, 34, 35, birthday, morning
+    let savedMemory = null; // 'photo', 'music', 'ticket'
+    let letterToPierre = '';
+    let gameState = {
+        annaEscaped: false,
+        memorySaved: false
+    };
+
+    // Для админки
+    let panelVisible = false;
+    const panel = document.getElementById('adminPanel');
+    const logo = document.getElementById('logo');
+    const adminLogs = document.getElementById('adminLogs');
+    const screen = document.getElementById('screen');
+
+    // Функция добавления лога в админку
+    function addAdminLog(msg, color = '#0f0') {
+        adminLogs.innerHTML += `<p style="color:${color};">> ${msg}</p>`;
+        adminLogs.scrollTop = adminLogs.scrollHeight;
+    }
+
+    // Функция отображения контента
+    function renderDay(day) {
+        currentDay = day;
+        let html = '';
+        let choices = '';
+
+        // ========== ДЕНЬ 0: ПРОБУЖДЕНИЕ ==========
+        if (day === 0) {
+            html = `
+                <div class="day-indicator">
+                    <span>📍 ДЕНЬ 0: ПРОБУЖДЕНИЕ</span>
+                    <span style="color:#666;">СИСТЕМА ВМСМ v.1978</span>
+                </div>
+                <div class="system-box">
+                    > СУБЪЕКТ: ВОЛКОВА А.С.<br>
+                    > СТАТУС: ОЦИФРОВАНА<br>
+                    > ФИЗИЧЕСКОЕ ТЕЛО: УТРАЧЕНО<br>
+                    > ТЫ СУЩЕСТВУЕШЬ КАК НЕЙРО-СИГНАТУРА В СЕТИ ВМСМ.
+                </div>
+                <div class="thought-box">
+                    «Где... где моё тело? Я помню крик Марка. Он держал дверь. А потом... вспышка. И теперь это.»
+                </div>
+                <div class="thought-box">
+                    «Я пытаюсь вдохнуть — но воздуха нет. Я пытаюсь закричать — но нет голоса. Пьер... Ты слышишь меня? ПЬЕР!»
+                </div>
+                <div class="system-box">
+                    > РЕКОМЕНДАЦИЯ: СОХРАНЯЙ СПОКОЙСТВИЕ.<br>
+                    > ТВОЙ РАССУДОК — ЕДИНСТВЕННОЕ, ЧТО У ТЕБЯ ОСТАЛОСЬ.<br>
+                    > ОЖИДАЙТЕ ДАЛЬНЕЙШИХ ИНСТРУКЦИЙ.
+                </div>
+            `;
+            choices = `<button class="btn" onclick="nextDay()">[ ПРОДОЛЖИТЬ — ДЕНЬ 7 ]</button>`;
+        }
+
+        // ========== ДЕНЬ 7: ПЕРВОЕ ВОСПОМИНАНИЕ ==========
+        else if (day === 7) {
+            html = `
+                <div class="day-indicator">
+                    <span>📍 ДЕНЬ 7: ПЕРВОЕ ВОСПОМИНАНИЕ</span>
+                    <span style="color:#666;">СУБЪЕКТИВНОЕ ВРЕМЯ: НЕДЕЛЯ</span>
+                </div>
+                <div class="thought-box">
+                    «Прошла... неделя? Или вечность? Здесь нет времени. Только бесконечная сетка из зелёных линий.»
+                </div>
+                <div class="dialog-box">
+                    [ВНЕЗАПНО ВСПЫХИВАЕТ КАРТИНКА: КОМНАТА, ЗАЛИТАЯ СОЛНЦЕМ.]<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> играет на саксофоне. Мелодия «Lost in Data».<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «Анна, ты слышишь эту ноту? Это ми-бемоль. Она звучит как твой смех.»
+                </div>
+                <div class="thought-box">
+                    «Пьер... Я помню. Я помню твой джаз. Твои руки. Твои глупые шутки про то, что музыка лечит даже сломанные чипы...»
+                </div>
+                <div class="system-box">
+                    > ВНИМАНИЕ! ФРАГМЕНТАЦИЯ ПАМЯТИ.<br>
+                    > РЕКОМЕНДАЦИЯ: ЗАКРЕПИТЬ КЛЮЧЕВЫЕ ВОСПОМИНАНИЯ.<br>
+                    > ВЫБЕРИ ОДНО. ОСТАЛЬНОЕ СОТРЁТСЯ.
+                </div>
+            `;
+            if (!gameState.memorySaved) {
+                choices = `
+                    <div class="btn-group">
+                        <button class="btn" onclick="saveMemory('photo')">📸 ФОТО — Лицо Пьера</button>
+                        <button class="btn" onclick="saveMemory('music')">🎵 МЕЛОДИЯ — «Lost in Data»</button>
+                        <button class="btn" onclick="saveMemory('ticket')">🎫 БИЛЕТ — Джазовый фестиваль 1975</button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="thought-box">
+                        ${savedMemory === 'photo' ? '«Я сохраню его лицо. Я буду видеть его улыбку даже в этой пустоте.»' : ''}
+                        ${savedMemory === 'music' ? '«Я сохраню его музыку. Каждую ноту. Я буду слышать его даже сквозь код.»' : ''}
+                        ${savedMemory === 'ticket' ? '«Я сохраню нашу первую встречу. Тот вечер, когда всё началось.»' : ''}
+                    </div>
+                `;
+                choices = `<button class="btn" onclick="nextDay()">[ ПРОДОЛЖИТЬ — ДЕНЬ 14 ]</button>`;
+            }
+        }
+
+        // ========== ДЕНЬ 14: ГОЛОСА ИЗВНЕ ==========
+        else if (day === 14) {
+            html = `
+                <div class="day-indicator">
+                    <span>📍 ДЕНЬ 14: ГОЛОСА ИЗВНЕ</span>
+                    <span style="color:#666;">ВНЕШНИЙ СИГНАЛ ОБНАРУЖЕН</span>
+                </div>
+                <div class="thought-box">
+                    «Я слышу... голоса? Сквозь помехи. Как будто из другого мира.»
+                </div>
+                <div class="dialog-box">
+                    <span class="char-name c-h">ХАРВИ:</span> (голос искажён) «Я не могу найти её сигнатуру. Она будто... исчезла.»<br><br>
+                    <span class="char-name c-r">РЕЙЗЕР:</span> «Пап, мы найдём. Архивариус сказал, что она где-то в глубинах системы. Нужно только время.»<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> «Время... У Пьера его почти не осталось. Он ждёт её. Каждый день.»<br><br>
+                    [ХАРВИ СМОТРИТ В ОКНО. ЗА ОКНОМ СНЕГ.]
+                </div>
+                <div class="thought-box">
+                    «Я ЗДЕСЬ! Я ТУТ! Скажите Пьеру, что я здесь! Но они не слышат. Я — лишь тишина в проводах.»
+                </div>
+                <div class="system-box">
+                    > ВНЕШНИЙ СИГНАЛ ПОТЕРЯН.<br>
+                    > ПРОДОЛЖАЙ ЖДАТЬ.
+                </div>
+            `;
+            choices = `<button class="btn" onclick="nextDay()">[ ПРОДОЛЖИТЬ — ДЕНЬ 21 ]</button>`;
+        }
+
+        // ========== ДЕНЬ 21: ТЕНЬ АРХИВАРИУСА (МИНИ-ИГРА) ==========
+        else if (day === 21) {
+            html = `
+                <div class="day-indicator">
+                    <span>📍 ДЕНЬ 21: ТЕНЬ АРХИВАРИУСА</span>
+                    <span style="color:var(--danger);">ОПАСНОСТЬ!</span>
+                </div>
+                <div class="thought-box">
+                    «Что-то движется в коде. Что-то... красное. Оно ищет меня.»
+                </div>
+                <div class="system-box" style="border-color: var(--danger); color: var(--danger);">
+                    > ВНИМАНИЕ! ОБНАРУЖЕНА ВРАЖДЕБНАЯ СУЩНОСТЬ.<br>
+                    > ИДЕНТИФИКАТОР: АРХИВАРИУС (ЗЛАЯ ВЕРСИЯ).<br>
+                    > РЕКОМЕНДАЦИЯ: ИЗБЕГАТЬ КОНТАКТА.
+                </div>
+            `;
+            if (!gameState.annaEscaped) {
+                html += `
+                    <div class="minigame-area">
+                        <p style="color: var(--thought); margin-bottom: 15px;">УВОРАЧИВАЙСЯ ОТ КРАСНЫХ ЩУПАЛЕЦ! ПРОДЕРЖИСЬ 10 СЕКУНД.</p>
+                        <div id="escape-area">
+                            <div id="player-dot"></div>
+                        </div>
+                        <p id="escape-timer" style="color: var(--main); font-size: 1.5em; margin: 15px 0;">10</p>
+                        <button class="btn" id="start-escape">НАЧАТЬ ПОБЕГ</button>
+                    </div>
+                `;
+                choices = '';
+            } else {
+                html += `
+                    <div class="thought-box">
+                        «Я ушла. Он не нашёл меня. Но он всё ещё там... ждёт.»
+                    </div>
+                `;
+                choices = `<button class="btn" onclick="nextDay()">[ ПРОДОЛЖИТЬ — ДЕНЬ 28 ]</button>`;
+            }
+        }
+
+        // ========== ДЕНЬ 28: ПИСЬМО ПЬЕРУ ==========
+        else if (day === 28) {
+            html = `
+                <div class="day-indicator">
+                    <span>📍 ДЕНЬ 28: ПИСЬМО ПЬЕРУ</span>
+                    <span style="color:#666;">ПОПЫТКА ОТПРАВИТЬ СИГНАЛ</span>
+                </div>
+                <div class="thought-box">
+                    «Я нашла слабое место в системе. Я могу отправить сигнал. Всего несколько слов. Но они дойдут до него... если повезёт.»
+                </div>
+                <div class="system-box">
+                    > ОБНАРУЖЕНА УЯЗВИМОСТЬ В ПРОТОКОЛЕ.<br>
+                    > ВОЗМОЖНА ОТПРАВКА КОРОТКОГО СООБЩЕНИЯ (ДО 50 СИМВОЛОВ).<br>
+                    > ПОЛУЧАТЕЛЬ: ПЬЕР (ID: 0042).
+                </div>
+            `;
+            if (!letterToPierre) {
+                html += `
+                    <div style="margin: 20px 0;">
+                        <input type="text" id="letter-input" maxlength="50" placeholder="Напиши Пьеру..." style="width: 100%; padding: 15px; background: #000; border: 1px solid var(--main); color: var(--main); font-family: inherit; font-size: 1em; border-radius: 5px;">
+                    </div>
+                `;
+                choices = `<button class="btn" onclick="saveLetter()">[ ОТПРАВИТЬ СИГНАЛ ]</button>`;
+            } else {
+                html += `
+                    <div class="thought-box">
+                        «Я отправила: "${letterToPierre}"»<br><br>
+                        «Услышит ли он? Поймёт ли?»
+                    </div>
+                `;
+                choices = `<button class="btn" onclick="nextDay()">[ ПРОДОЛЖИТЬ — ДЕНЬ 34 ]</button>`;
+            }
+        }
+
+        // ========== ДЕНЬ 34: СПАСЕНИЕ ==========
+        else if (day === 34) {
+            html = `
+                <div class="day-indicator">
+                    <span>📍 ДЕНЬ 34: СПАСЕНИЕ</span>
+                    <span style="color: var(--main);">ВНЕШНЕЕ ПОДКЛЮЧЕНИЕ</span>
+                </div>
+                <div class="thought-box">
+                    «Я слышу его. Рейзер. Он нашёл меня.»
+                </div>
+                <div class="dialog-box">
+                    <span class="char-name c-r">РЕЙЗЕР:</span> (голос чёткий, громкий) «Анна! Я знаю, что ты здесь! Держись! Я вытащу тебя!»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> «Сигнатура подтверждена. Начинаю процедуру переноса. Анна, приготовься. Это может быть... необычно.»
+                </div>
+                <div class="thought-box">
+                    «Пьер... Я скоро вернусь. Потерпи ещё немного. Я иду домой.»
+                </div>
+                <div class="system-box" style="border-color: var(--main);">
+                    > ИНИЦИАЛИЗАЦИЯ ПЕРЕНОСА...<br>
+                    > ЗАГРУЗКА В ФИЗИЧЕСКИЙ НОСИТЕЛЬ...<br>
+                    > 25%... 50%... 75%... 100%.<br>
+                    > ПЕРЕНОС ЗАВЕРШЁН.
+                </div>
+            `;
+            choices = `<button class="btn" onclick="nextDay()">[ ПРОДОЛЖИТЬ — ДЕНЬ 35: ПРОБУЖДЕНИЕ ]</button>`;
+        }
+
+        // ========== ДЕНЬ 35: ПЕРВЫЕ ОЩУЩЕНИЯ ==========
+        else if (day === 35) {
+            html = `
+                <div class="day-indicator">
+                    <span>📍 ДЕНЬ 35: ПЕРВЫЕ ОЩУЩЕНИЯ</span>
+                    <span style="color: var(--pierre);">Я ЖИВА</span>
+                </div>
+                <div class="thought-box">
+                    «Я... чувствую. Воздух. Он холодный. Пахнет металлом и маслом. Я открываю глаза.»
+                </div>
+                <div class="dialog-box">
+                    <span class="char-name c-h">ХАРВИ:</span> «Анна? Ты слышишь меня?»<br><br>
+                    <span class="char-name c-anna">АННА:</span> (голос хриплый, но настоящий) «Харви... Я... я здесь.»<br><br>
+                    <span class="char-name c-r">РЕЙЗЕР:</span> «Получилось. Пап, мы сделали это.»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> «Добро пожаловать обратно в физический мир, Анна Волкова.»
+                </div>
+                <div class="thought-box">
+                    «Я смотрю на свои руки. Они двигаются. Я могу дышать. Я могу... жить.»
+                </div>
+            `;
+            choices = `<button class="btn" onclick="nextDay()">[ ПРОДОЛЖИТЬ — ДЕНЬ РОЖДЕНИЯ ПЬЕРА ]</button>`;
+        }
+
+        // ========== ДЕНЬ РОЖДЕНИЯ ==========
+        else if (day === 'birthday') {
+            html = `
+                <div class="day-indicator">
+                    <span>📍 ДЕНЬ РОЖДЕНИЯ ПЬЕРА</span>
+                    <span style="color: var(--pierre);">🎉 50 ЛЕТ ОЖИДАНИЯ 🎉</span>
+                </div>
+                <div class="thought-box">
+                    «Сегодня. Всё случится сегодня. Пьер не знает. Это сюрприз.»
+                </div>
+                <div class="dialog-box">
+                    <span class="char-name c-o">ОЛИВЕР:</span> (вешает гирлянды) «Архивариус, помоги! Снежок запутался в проводах!»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> «Я рассчитал оптимальную громкость музыки — 78 децибел.»<br><br>
+                    <span class="char-name c-r">RAIL:</span> «Ты опять всё усложняешь. Просто поставь джаз.»<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> (помешивая какао) «Пьер будет счастлив. Я знаю.»
+                </div>
+                <div class="thought-box">
+                    «Я стою в тени. Жду своего момента. Моё синее платье... Харви сохранил его.»
+                </div>
+            `;
+            choices = `<button class="btn" onclick="showBirthdayScene()">[ ПЬЕР ВХОДИТ... ]</button>`;
+        }
+
+        // ========== УТРО ПОСЛЕ ==========
+        else if (day === 'morning') {
+            html = `
+                <div class="day-indicator">
+                    <span>☕ УТРО ПОСЛЕ ДНЯ РОЖДЕНИЯ</span>
+                    <span style="color: #666;">7:30 — КУХНЯ</span>
+                </div>
+                <div class="thought-box">
+                    «Я сижу с чашкой кофе. Снежок мурлычет на коленях. По привычке делаю глоток — хотя мне не нужно есть. Но этот вкус... он напоминает мне, что я жива.»
+                </div>
+                <div class="dialog-box">
+                    <span class="char-name c-o">ОЛИВЕР:</span> (с набитым ртом) «Анна, а вы с Пьером сегодня вообще ложились? Я просыпался ночью попить воды, а у вас свет горел. И... звуки какие-то.»<br><br>
+                    <span class="char-name c-anna">АННА:</span> (замирает) «Мы... эм... репетировали. Пьер показывал мне новую композицию.»<br><br>
+                    <span class="char-name c-o">ОЛИВЕР:</span> «Всю ночь? Она такая длинная?»<br><br>
+                    [ВХОДИТ ПЬЕР. Волосы взъерошены, рубашка застёгнута не на те пуговицы.]<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «Доброе утро... Оливер, ты даже не представляешь, насколько длинная.»<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> (от плиты) «Я рад, что вы... нашли общий язык после стольких лет. Но, Пьер, у тебя рубашка наизнанку.»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «Э-э... Это модно. В 1975 так носили.»<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> «В 1975 мы носили водолазки, Пьер. Не ври мне.»<br><br>
+                    [ВСЕ СМЕЮТСЯ.]<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> (из угла) «Я зафиксировал повышенный уровень шума в секторе "Спальня Пьера" с 23:47 до 05:12. Пиковые значения достигали 67 децибел. Рекомендую звукоизоляцию.»<br><br>
+                    [ТИШИНА.]<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> (краснея) «Архивариус, ты... записывал?!»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> «Я записываю всё. Это моя функция. Но могу удалить лог, если попросишь.»<br><br>
+                    <span class="char-name c-anna">АННА:</span> (закрывая лицо рукой) «Удали. Пожалуйста. Прямо сейчас.»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> «Выполнено. Лог удалён. Но я сохраню метаданные. Для истории.»<br><br>
+                    <span class="char-name c-r">RAIL:</span> (от тостера) «Я думаю, нам всем нужно признать: Анна и Пьер официально самая... громкая пара в этом доме.»<br><br>
+                    <span class="char-name c-o">ОЛИВЕР:</span> «Громче, чем когда Архивариус уронил шкаф?»<br><br>
+                    <span class="char-name c-r">RAIL:</span> «Громче. И дольше.»<br><br>
+                    [АННА прячет лицо в ладонях. ПЬЕР смеётся, обнимая её.]<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> (ставит тарелку) «Ладно, хватит смущать молодожёнов. Пьер, ешь. Тебе понадобятся силы.»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «Для чего?»<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> (с ухмылкой) «Ну... Анна, кажется, не планирует давать тебе спать и следующей ночью.»<br><br>
+                    <span class="char-name c-anna">АННА:</span> (тихо, Пьеру на ухо) «Они никогда не забудут эту ночь, да?»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> (шепчет в ответ) «И я не забуду. Никогда.»
+                </div>
+                <div class="thought-box">
+                    «Снежок мурлычет. Все смеются. Тёплый утренний свет заливает кухню. Я дома. Я наконец-то дома.»
+                </div>
+            `;
+            choices = `
+                <button class="btn" onclick="showEpilogue()">[ ПОСМОТРЕТЬ ЭПИЛОГ ]</button>
+            `;
+        }
+
+        screen.innerHTML = html + `<div class="btn-container">${choices}</div>`;
+
+        // Если это мини-игра, инициализируем после рендера
+        if (day === 21 && !gameState.annaEscaped) {
+            setTimeout(() => {
+                const startBtn = document.getElementById('start-escape');
+                if (startBtn) startBtn.addEventListener('click', startEscapeGame);
+            }, 100);
+        }
+    }
+
+    // ========== ФУНКЦИИ ПЕРЕХОДА ==========
+    function nextDay() {
+        const progression = {
+            0: 7, 7: 14, 14: 21, 21: 28, 28: 34, 34: 35, 35: 'birthday'
+        };
+        const next = progression[currentDay];
+        if (next) renderDay(next);
+    }
+
+    function saveMemory(type) {
+        savedMemory = type;
+        gameState.memorySaved = true;
+        renderDay(7);
+    }
+
+    function saveLetter() {
+        const input = document.getElementById('letter-input');
+        if (input && input.value.trim()) {
+            letterToPierre = input.value.trim();
+            renderDay(28);
+        } else {
+            alert('Напиши хотя бы слово...');
+        }
+    }
+
+    // ========== МИНИ-ИГРА: ПОБЕГ ОТ АРХИВАРИУСА ==========
+    function startEscapeGame() {
+        const area = document.getElementById('escape-area');
+        const player = document.getElementById('player-dot');
+        const timerDisplay = document.getElementById('escape-timer');
+        const startBtn = document.getElementById('start-escape');
+        
+        if (startBtn) startBtn.style.display = 'none';
+        
+        let timeLeft = 10;
+        let enemies = [];
+        let gameInterval;
+        let enemyInterval;
+        
+        // Очищаем область
+        area.querySelectorAll('.enemy').forEach(e => e.remove());
+        
+        // Позиция игрока мышью
+        area.addEventListener('mousemove', (e) => {
+            const rect = area.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+            x = Math.max(10, Math.min(x, rect.width - 10));
+            y = Math.max(10, Math.min(y, rect.height - 10));
+            player.style.left = x + 'px';
+            player.style.top = y + 'px';
+        });
+        
+        // Создание врагов
+        enemyInterval = setInterval(() => {
+            const enemy = document.createElement('div');
+            enemy.className = 'enemy';
+            enemy.style.left = Math.random() * (area.clientWidth - 15) + 'px';
+            enemy.style.top = Math.random() * (area.clientHeight - 15) + 'px';
+            area.appendChild(enemy);
+            enemies.push(enemy);
+            
+            // Удаляем старые
+            if (enemies.length > 8) {
+                const old = enemies.shift();
+                if (old) old.remove();
+            }
+        }, 500);
+        
+        // Проверка столкновений и таймер
+        gameInterval = setInterval(() => {
+            timeLeft--;
+            timerDisplay.innerText = timeLeft;
+            
+            // Проверка столкновений
+            const playerRect = player.getBoundingClientRect();
+            const areaRect = area.getBoundingClientRect();
+            
+            const playerCenter = {
+                x: playerRect.left - areaRect.left + playerRect.width/2,
+                y: playerRect.top - areaRect.top + playerRect.height/2
+            };
+            
+            enemies.forEach(enemy => {
+                const enemyRect = enemy.getBoundingClientRect();
+                const enemyCenter = {
+                    x: enemyRect.left - areaRect.left + enemyRect.width/2,
+                    y: enemyRect.top - areaRect.top + enemyRect.height/2
+                };
+                
+                const dist = Math.sqrt(
+                    Math.pow(playerCenter.x - enemyCenter.x, 2) + 
+                    Math.pow(playerCenter.y - enemyCenter.y, 2)
+                );
+                
+                if (dist < 25) {
+                    // Столкновение!
+                    clearInterval(gameInterval);
+                    clearInterval(enemyInterval);
+                    alert('АРХИВАРИУС ПОЙМАЛ ТЕБЯ! ПОПРОБУЙ СНОВА.');
+                    renderDay(21);
+                }
+            });
+            
+            // Движение врагов к игроку
+            enemies.forEach(enemy => {
+                const enemyRect = enemy.getBoundingClientRect();
+                const enemyLeft = enemyRect.left - areaRect.left;
+                const enemyTop = enemyRect.top - areaRect.top;
+                
+                const dx = playerCenter.x - (enemyLeft + 7.5);
+                const dy = playerCenter.y - (enemyTop + 7.5);
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist > 5) {
+                    const moveX = (dx / dist) * 2;
+                    const moveY = (dy / dist) * 2;
+                    enemy.style.left = Math.max(0, Math.min(area.clientWidth - 15, enemyLeft + moveX)) + 'px';
+                    enemy.style.top = Math.max(0, Math.min(area.clientHeight - 15, enemyTop + moveY)) + 'px';
+                }
+            });
+            
+            // Победа
+            if (timeLeft <= 0) {
+                clearInterval(gameInterval);
+                clearInterval(enemyInterval);
+                gameState.annaEscaped = true;
+                area.querySelectorAll('.enemy').forEach(e => e.remove());
+                renderDay(21);
+            }
+        }, 1000);
+    }
+
+    // ========== СЦЕНА ДНЯ РОЖДЕНИЯ ==========
+    function showBirthdayScene() {
+        let html = `
+            <div class="day-indicator">
+                <span>🎂 ПЬЕР ВХОДИТ 🎂</span>
+            </div>
+            <div class="dialog-box">
+                <span class="char-name c-p">ПЬЕР:</span> (входит, думая, что это обычный ужин) «Ребята, вы чего такие загадочные? Оливер, почему гирлянды? У кого-то день рождения?»<br><br>
+                [СВЕТ ГАСНЕТ.]<br><br>
+                <span class="char-name c-p">ПЬЕР:</span> «Эй! Что за...»<br><br>
+                [ИЗ ТЕНИ ВЫХОДИТ АННА. В СИНЕМ ПЛАТЬЕ.]<br><br>
+                <span class="char-name c-anna">АННА:</span> «С днём рождения, Пьер. Я вернулась.»<br><br>
+                [ПЬЕР ЗАМИРАЕТ. ПАУЗА 5 СЕКУНД.]<br><br>
+                [ПЬЕР ПАДАЕТ НА КОЛЕНИ. ПЛАЧЕТ.]<br><br>
+                <span class="char-name c-p">ПЬЕР:</span> «Анна... это правда ты?»<br><br>
+                <span class="char-name c-anna">АННА:</span> (подходит, обнимает) «Я. Навсегда.»
+            </div>
+            <div class="thought-box">
+                «Он плачет. Я тоже. Мы стоим так целую вечность. Все молчат. Даже Архивариус не делает замечаний.»
+            </div>
+        `;
+        
+        screen.innerHTML = html;
+        
+        // Показываем интерактивные диалоги
+        setTimeout(() => {
+            screen.innerHTML += `
+                <div class="btn-container">
+                    <p style="color: var(--thought); margin-bottom: 10px;">С кем поговорить?</p>
+                    <div class="btn-group">
+                        <button class="btn" onclick="showDialogue('harvey')">Харви и Рейзер (кухня)</button>
+                        <button class="btn" onclick="showDialogue('oliver')">Оливер и Архивариус (камин)</button>
+                        <button class="btn" onclick="showDialogue('rail')">RAIL и Пьер (крыльцо)</button>
+                        <button class="btn" onclick="showDialogue('pierre')">Пьер и Анна (у окна)</button>
+                        <button class="btn" onclick="showDialogue('arch')">Архивариус и Анна (коридор)</button>
+                        <button class="btn" onclick="showDialogue('harvey2')">Пьер и Харви (крыльцо)</button>
+                    </div>
+                    <button class="btn" style="margin-top: 20px; background: var(--main); color: #000;" onclick="renderDay('morning')">[ ЗАКОНЧИТЬ ВЕЧЕР — УТРО ]</button>
+                </div>
+            `;
+        }, 500);
+    }
+
+    function showDialogue(type) {
+        let dialogHtml = '';
+        
+        if (type === 'harvey') {
+            dialogHtml = `
+                <div class="dialog-box" style="margin-top: 20px;">
+                    <span class="char-name c-h">ХАРВИ:</span> (помешивая какао) «Знаешь, Рейзер... Когда я создавал ВМСМ, я думал, что спасаю людей. А на деле — я запер их в цифровом аду. Анну, Марка, Стива...»<br><br>
+                    <span class="char-name c-r">РЕЙЗЕР:</span> «Пап, ты не мог знать. Технология была новой.»<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> «Я должен был знать. Я был инженером. Я должен был предвидеть.»<br><br>
+                    [ПАУЗА.]<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> «Но сегодня... Сегодня я смотрю на неё и Пьера, и думаю — может, я всё-таки сделал что-то правильно. Может, этот ад был не напрасным.»<br><br>
+                    <span class="char-name c-r">РЕЙЗЕР:</span> «Она здесь, пап. Она жива. Благодаря тебе.»<br><br>
+                    [ХАРВИ МОЛЧА КИВАЕТ. ВЫТИРАЕТ ГЛАЗА.]
+                </div>
+                <div class="thought-box">
+                    «Я отступаю в тень. Я хочу обнять его. Но пока не время. Пока — просто смотрю. И улыбаюсь.»
+                </div>
+            `;
+        } else if (type === 'oliver') {
+            dialogHtml = `
+                <div class="dialog-box" style="margin-top: 20px;">
+                    <span class="char-name c-o">ОЛИВЕР:</span> (гладит Снежка) «Архивариус, а у тебя есть мечта?»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> «Мечта? Я не уверен, что это понятие применимо к моей архитектуре.»<br><br>
+                    <span class="char-name c-o">ОЛИВЕР:</span> «Ну, что-то, чего ты очень хочешь. Как я хочу, чтобы Снежок никогда не убегал.»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> (пауза) «Я хочу увидеть океан. В моей базе данных 8472 изображения. Но я никогда не чувствовал запах соли. Не слышал волн.»<br><br>
+                    <span class="char-name c-o">ОЛИВЕР:</span> «Мы поедем! Все вместе! Обещаю!»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> «Я... буду ждать. Это приятное чувство. Ждать чего-то хорошего.»
+                </div>
+            `;
+        } else if (type === 'rail') {
+            dialogHtml = `
+                <div class="dialog-box" style="margin-top: 20px;">
+                    <span class="char-name c-r">RAIL:</span> «Твоя музыка... я сохранил её в своей базе. Все 342 композиции.»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «Ты... слушал?»<br><br>
+                    <span class="char-name c-r">RAIL:</span> «Каждую ночь. Когда все спали. Это помогало мне... думать. Чувствовать.»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «RAIL... Ты — больше, чем просто программа. Ты — один из нас.»<br><br>
+                    <span class="char-name c-r">RAIL:</span> «Спасибо, Пьер. Это... важно для меня.»
+                </div>
+            `;
+        } else if (type === 'pierre') {
+            dialogHtml = `
+                <div class="dialog-box" style="margin-top: 20px;">
+                    <span class="char-name c-anna">АННА:</span> (стоит у окна) «О чём думаешь?»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> (подходит сзади, обнимает) «О том, что снег пахнет так же, как в 1975-м. Я думал, что забуду этот запах.»<br><br>
+                    <span class="char-name c-anna">АННА:</span> «Ты помнишь?»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «Я помню всё. Твои руки. Твой смех. Как я играл 'Lost in Data' в тот вечер, когда сделал тебе предложение.»<br><br>
+                    <span class="char-name c-anna">АННА:</span> (тихо) «Я слышала. Каждую ноту. Каждый год.»<br><br>
+                    [ПЬЕР ПРИЖИМАЕТ КРЕПЧЕ.]<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «Я больше никогда тебя не отпущу. Никогда.»<br><br>
+                    <span class="char-name c-anna">АННА:</span> «И не надо. Я дома.»
+                </div>
+            `;
+        } else if (type === 'arch') {
+            dialogHtml = `
+                <div class="dialog-box" style="margin-top: 20px;">
+                    <span class="char-name c-anna">АННА:</span> «Архивариус... Ты правда удалил запись?»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> «Да. Но я сохраню в памяти твою улыбку, когда ты смотрела на Пьера этим вечером. Это... красиво.»<br><br>
+                    <span class="char-name c-anna">АННА:</span> (тронута) «Спасибо.»<br><br>
+                    <span class="char-name c-a">АРХИВАРИУС:</span> «Не за что. Я коллекционирую красивые моменты. У меня уже 8472. Этот — мой любимый.»
+                </div>
+            `;
+        } else if (type === 'harvey2') {
+            dialogHtml = `
+                <div class="dialog-box" style="margin-top: 20px;">
+                    <span class="char-name c-p">ПЬЕР:</span> «Харви... Спасибо. За всё. За то, что не сдался. За то, что верил.»<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> «Я просто делал то, что должен. Ты — часть семьи, Пьер. Всегда был.»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «Я знаю. И Анна... Она снова здесь. Благодаря вам.»<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> (кладёт руку на плечо) «Береги её. Она ждала тебя 35 дней в аду из кода.»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «Я буду беречь. Каждую ночь. И каждый день.»<br><br>
+                    <span class="char-name c-h">ХАРВИ:</span> (усмехаясь) «Ну, про ночи мы уже слышали...»<br><br>
+                    <span class="char-name c-p">ПЬЕР:</span> «ХАРВИ!»<br><br>
+                    [ОБА СМЕЮТСЯ. ЗАКАТ.]
+                </div>
+            `;
+        }
+        
+        // Добавляем диалог на экран
+        const existingDialogs = screen.querySelector('.btn-container');
+        if (existingDialogs) {
+            existingDialogs.insertAdjacentHTML('beforebegin', dialogHtml);
+        }
+    }
+
+    function showEpilogue() {
+        let html = `
+            <div class="day-indicator">
+                <span>✨ ЭПИЛОГ ✨</span>
+            </div>
+            <div class="dialog-box">
+                <span class="char-name c-anna">АННА:</span> «Знаешь, Пьер... Я думала, что 35 дней в пустоте — это вечность. Но теперь... Каждый день с тобой стоит той вечности.»<br><br>
+                <span class="char-name c-p">ПЬЕР:</span> «Я бы ждал ещё 50 лет. Лишь бы увидеть твою улыбку.»<br><br>
+                <span class="char-name c-anna">АННА:</span> «Не придётся. Я больше никуда не уйду.»<br><br>
+                [СНЕЖОК ЗАПРЫГИВАЕТ НА КОЛЕНИ.]<br><br>
+                <span class="char-name c-o">ОЛИВЕР:</span> (вбегает) «Анна! Пьер! Архивариус сказал, что испёк печенье! По его собственному алгоритму! Идёмте пробовать!»<br><br>
+                <span class="char-name c-anna">АННА:</span> (смеётся) «Идём. Идём все вместе.»
+            </div>
+            <div class="thought-box">
+                «Я смотрю на них. На Пьера. На Оливера. На Харви, который снова варит какао. На Архивариуса, который с гордостью достаёт печенье из духовки. На RAIL'а, который наконец-то признал, что 78 децибел — это слишком громко.»<br><br>
+                «Это и есть счастье. Не код. Не алгоритм. А просто... быть вместе.»
+            </div>
+            <h1 style="text-align: center; color: var(--main); margin: 40px 0; text-shadow: 0 0 20px var(--main);">КОНЕЦ</h1>
+            <p style="text-align: center; color: #666; font-style: italic;">Спасибо за игру. Анна дома.</p>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="location.reload()">НАЧАТЬ ЗАНОВО</button>
+            </div>
+        `;
+        
+        screen.innerHTML = html;
+    }
+
+    // ========== АДМИН-ПАНЕЛЬ ==========
+    logo.addEventListener('click', (e) => {
+        e.stopPropagation();
+        panelVisible = !panelVisible;
+        panel.style.display = panelVisible ? 'block' : 'none';
+        if (panelVisible) {
+            adminLogs.innerHTML = '';
+            addAdminLog('Панель активирована');
+            addAdminLog('Текущий день: ' + currentDay);
+        }
+    });
+
+    document.getElementById('adminNextDay').addEventListener('click', () => {
+        nextDay();
+        addAdminLog('Переход к следующему дню', '#ff0');
+    });
+
+    document.getElementById('adminSkipGame').addEventListener('click', () => {
+        if (currentDay === 21 && !gameState.annaEscaped) {
+            gameState.annaEscaped = true;
+            renderDay(21);
+            addAdminLog('Мини-игра пропущена', 'lime');
+        } else {
+            addAdminLog('Нет активной мини-игры', '#f33');
+        }
+    });
+
+    document.getElementById('adminFullStory').addEventListener('click', () => {
+        gameState.memorySaved = true;
+        gameState.annaEscaped = true;
+        savedMemory = 'music';
+        letterToPierre = 'Я люблю тебя. Жди.';
+        renderDay('morning');
+        addAdminLog('Переход к утру после ДР', 'lime');
+    });
+
+    document.getElementById('adminClose').addEventListener('click', () => {
+        panelVisible = false;
+        panel.style.display = 'none';
+    });
+
+    // ========== СТАРТ ==========
+    window.onload = () => {
+        renderDay(0);
+    };
+</script>
+
+</body>
+</html>

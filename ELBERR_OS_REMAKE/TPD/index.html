@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELBERR OS: TPD — The Pierre Days</title>
+    <style>
+        :root {
+            --bg: #0a0f0a;
+            --main: #00ff41;
+            --thought: #00d0ff;
+            --harvey: #ffab40;
+            --pierre: #ffd700;
+            --oliver: #ba68c8;
+            --arch: #ffffff;
+            --rail: #00d0ff;
+            --anna: #ff99ff;
+            --danger: #ff3333;
+            --system: #888888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0f0a;
+            font-family: 'Segoe UI', Arial, 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 800px;
+            background: #000;
+            border: 2px solid #2a4a2a;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 70px rgba(0, 255, 65, 0.15), inset 0 0 40px rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .logo {
+            color: #ffaa33;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: 0.3s;
+            white-space: pre;
+            text-shadow: 0 0 15px #ffaa33;
+            border-bottom: 1px solid #ffaa33;
+            padding-bottom: 10px;
+            line-height: 1.2;
+            letter-spacing: 2px;
+        }
+        .logo:hover { 
+            text-shadow: 0 0 25px gold; 
+            opacity: 0.9;
+        }
+
+        #screen {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            scroll-behavior: smooth;
+        }
+        #screen::-webkit-scrollbar {
+            width: 8px;
+        }
+        #screen::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        #screen::-webkit-scrollbar-thumb {
+            background: var(--pierre);
+            border-radius: 4px;
+        }
+
+        .thought-box {
+            background: rgba(0, 208, 255, 0.05);
+            border-left: 4px solid var(--thought);
+            padding: 20px;
+            margin: 20px 0;
+            color: var(--thought);
+            font-style: italic;
+            line-height: 1.6;
+            font-size: 1.05em;
+            border-radius: 0 16px 16px 0;
+        }
+
+        .system-box {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 20px;
+            margin: 20px 0;
+            color: var(--system);
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            border-radius: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .dialog-box {
+            background: rgba(255, 215, 0, 0.03);
+            border: 1px solid #3a4a2a;
+            padding: 20px;
+            margin: 20px 0;
+            color: #e0e0e0;
+            line-height: 1.7;
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .char-name { 
+            font-weight: bold; 
+            display: inline-block; 
+            margin-right: 8px; 
+        }
+        .c-h { color: var(--harvey); }
+        .c-p { color: var(--pierre); }
+        .c-o { color: var(--oliver); }
+        .c-a { color: var(--arch); text-shadow: 0 0 5px var(--main); }
+        .c-r { color: var(--rail); }
+        .c-anna { color: var(--anna); text-shadow: 0 0 8px #ff66cc; }
+
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .btn {
+            background: #0f1a0f;
+            color: var(--main);
+            border: 1px solid var(--main);
+            padding: 16px 24px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: 0.2s;
+            text-align: left;
+            border-radius: 60px;
+            min-height: 52px;
+            box-shadow: 0 4px 0 #0a1a0a;
+        }
+        .btn:hover {
+            background: var(--main);
+            color: #000;
+            box-shadow: 0 0 20px var(--main);
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0a1a0a;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .btn-group .btn {
+            flex: 1;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .minigame-area {
+            background: #050a05;
+            border: 2px dashed var(--pierre);
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            border-radius: 32px;
+        }
+        
+        #melody-area {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .note-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #0a0f0a;
+            border: 3px solid var(--pierre);
+            color: var(--pierre);
+            font-size: 2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 0 #3a2a0a;
+        }
+        .note-btn:hover {
+            background: var(--pierre);
+            color: #000;
+            transform: scale(1.05);
+        }
+        .note-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #3a2a0a;
+        }
+        .note-btn.played {
+            background: var(--pierre);
+            color: #000;
+            box-shadow: 0 2px 0 #3a2a0a;
+            transform: translateY(4px);
+        }
+
+        .day-indicator {
+            color: var(--pierre);
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--pierre);
+            padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            font-weight: bold;
+            text-shadow: 0 0 8px gold;
+        }
+
+        #adminPanel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #0f0f0f;
+            border: 3px solid #f00;
+            color: #0f0;
+            padding: 20px;
+            z-index: 9999;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 0 50px red;
+            width: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 20px;
+        }
+        #adminPanel h4 { 
+            margin: 0 0 15px; 
+            color: #f00; 
+            text-align: center; 
+            font-size: 1.4em; 
+        }
+        #adminPanel .btn { 
+            width: 100%; 
+            margin: 8px 0; 
+            border-color: #f00; 
+            color: #f00; 
+        }
+        #adminLogs { 
+            max-height: 150px; 
+            overflow-y: auto; 
+            background: #000; 
+            border: 1px solid #300; 
+            margin: 10px 0; 
+            padding: 10px; 
+            font-size: 0.8em; 
+            color: #f66; 
+            border-radius: 16px; 
+        }
+    </style>
+</head>
+<body>
+
+<div id="adminPanel">
+    <h4>🎷 TPD ADMIN</h4>
+    <div id="adminLogs"></div>
+    <button class="btn" id="adminNextDay">СЛЕД. ДЕНЬ</button>
+    <button class="btn" id="adminSkipGame">ПРОПУСТИТЬ ИГРУ</button>
+    <button class="btn" id="adminFullStory">К УТРУ ПОСЛЕ ДР</button>
+    <button class="btn" id="adminClose">ЗАКРЫТЬ</button>
+</div>
+
+<div id="game-container">
+    <div class="logo" id="logo">
+  _____  _      ____  ______ _____  _____     ____   _____ 
+ |  __ \| |    |  _ \|  ____|  __ \|  __ \   / __ \ / ____|
+ | |__) | |    | |_) | |__  | |__) | |__) | | |  | | (___  
+ |  ___/| |    |  _ <|  __| |  _  /|  _  /  | |  | |\___ \ 
+ | |    | |____| |_) | |____| | \ \| | \ \  | |__| |____) |
+ |_|    |______|____/|______|_|  \_\_|  \_\  \____/|_____/ 
+    </div>
+    <div id="screen"></div>
+</div>
+
+<script>
+    (function(){
+        // ---------- СОСТОЯНИЕ ----------
+        let currentDay = 1;
+        let melodyCompleted = false;
+        let listenedToCassette = false;
+        const screen = document.getElementById('screen');
+        
+        function scrollToBottom() { 
+            setTimeout(() => screen.scrollTop = screen.scrollHeight, 50); 
+        }
+        
+        // Админка
+        const panel = document.getElementById('adminPanel');
+        const logo = document.getElementById('logo');
+        const adminLogs = document.getElementById('adminLogs');
+        let panelVisible = false;
+        function addAdminLog(msg, color = '#0f0') {
+            adminLogs.innerHTML += `<p style="color:${color};">> ${msg}</p>`;
+            adminLogs.scrollTop = adminLogs.scrollHeight;
+        }
+
+        // ========== РЕНДЕР ==========
+        function renderDay(day) {
+            currentDay = day;
+            let html = '';
+            let choices = '';
+            
+            // ДЕНЬ 1
+            if (day === 1) {
+                html = `<div class="day-indicator"><span>🎷 ДЕНЬ 1: ПРОБУЖДЕНИЕ</span><span style="color:#666;">ДО ДР 34 ДНЯ</span></div>
+                    <div class="thought-box">«Пятьдесят лет. Сегодня мне пятьдесят... плюс ещё сколько там в цифровом аду? День рождения через 34 дня. Все что-то скрывают. Шушукаются. Но я привык. Анна... я всё ещё слышу твой голос в каждой ноте.»</div>
+                    <div class="dialog-box">[ПЬЕР ВСТАЁТ, НАДЕВАЕТ ХАЛАТ, ВЫХОДИТ В КОРИДОР.]<br><br><span class="char-name c-p">ПЬЕР:</span> (напевает) «~ Lost in data... lost in time... but I still hear your voice in every rhyme... ~»</div>
+                    <div class="thought-box">«Эту мелодию Анна написала в 98-м. Я пою её каждое утро. Иногда мне кажется, что она слышит.»</div>`;
+                choices = `<button class="btn next-day-btn" data-next-day="7">[ ПРОДОЛЖИТЬ — ДЕНЬ 7 ]</button>`;
+            }
+            
+            // ДЕНЬ 7
+            else if (day === 7) {
+                html = `<div class="day-indicator"><span>🎵 ДЕНЬ 7: «LOST IN DATA»</span><span style="color:#666;">ЗА 28 ДНЕЙ</span></div>
+                    <div class="thought-box">«Сегодня я достал саксофон. Руки помнят каждую ноту. Анна говорила, что музыка лечит сломанные чипы... Может, она лечит и сломанные сердца?»</div>`;
+                if (!melodyCompleted) {
+                    html += `<div class="minigame-area"><p style="color: var(--thought);">🎷 СЫГРАЙ МЕЛОДИЮ: ДО → МИ → СОЛЬ → ДО</p>
+                        <div id="melody-area"><div class="note-btn" data-note="do">ДО</div><div class="note-btn" data-note="mi">МИ</div><div class="note-btn" data-note="sol">СОЛЬ</div><div class="note-btn" data-note="do2">ДО</div></div>
+                        <p id="melody-status" style="color: var(--pierre);">Сыграно: 0/4</p></div>`;
+                    choices = '';
+                } else {
+                    html += `<div class="thought-box">«Я сыграл. И на секунду... мне показалось, что я слышу её голос. "Пьер... я слышу тебя".»</div>`;
+                    choices = `<button class="btn next-day-btn" data-next-day="14">[ ПРОДОЛЖИТЬ — ДЕНЬ 14 ]</button>`;
+                }
+            }
+            
+            // ДЕНЬ 14
+            else if (day === 14) {
+                html = `<div class="day-indicator"><span>🤖 ДЕНЬ 14: РАЗГОВОР С RAIL</span><span style="color:#666;">ЗА 21 ДЕНЬ</span></div>
+                    <div class="thought-box">«RAIL сегодня странный. Обычно он выдаёт статистику, а сегодня... молчит. И смотрит на меня.»</div>
+                    <div class="dialog-box"><span class="char-name c-r">RAIL:</span> «Твоя игра... сегодня особенно грустная. Частота ми-бемоль на 0.3 секунды длиннее обычного.»<br><br><span class="char-name c-p">ПЬЕР:</span> «Ты и это слышишь?»<br><br><span class="char-name c-r">RAIL:</span> «Я слышу всё. Ты думаешь о ней.»<br><br><span class="char-name c-p">ПЬЕР:</span> «Каждый день, RAIL.»<br><br><span class="char-name c-r">RAIL:</span> (пауза) «Сегодня будет хороший день, Пьер. Я обещаю.»</div>
+                    <div class="thought-box">«RAIL никогда не обещает. Что они задумали?»</div>`;
+                choices = `<button class="btn next-day-btn" data-next-day="21">[ ПРОДОЛЖИТЬ — ДЕНЬ 21 ]</button>`;
+            }
+            
+            // ДЕНЬ 21
+            else if (day === 21) {
+                html = `<div class="day-indicator"><span>📼 ДЕНЬ 21: СТАРАЯ КАССЕТА</span><span style="color:#666;">ЗА 14 ДНЕЙ</span></div>
+                    <div class="thought-box">«Я нашёл коробку с кассетами. На одной написано: "Анна — Lost in Data, 1998". Мои руки дрожат.»</div>`;
+                if (!listenedToCassette) {
+                    html += `<div class="dialog-box" style="text-align:center;"><p style="color: var(--anna);">📼 НАЙДЕНА КАССЕТА С ГОЛОСОМ АННЫ</p><p style="margin:20px;">Прослушать?</p></div>`;
+                    choices = `<div class="btn-group">
+                        <button class="btn listen-cassette-btn" data-listen="true">▶ ПРОСЛУШАТЬ</button>
+                        <button class="btn listen-cassette-btn" data-listen="false">✖ НЕ СЕЙЧАС</button>
+                    </div>`;
+                } else {
+                    html += `<div class="dialog-box"><span class="char-name c-anna">АННА (запись 1998):</span> «Пьер... если ты это слушаешь, значит, меня уже нет рядом. Не грусти. Помнишь, я говорила, что музыка лечит даже сломанные чипы? Твоя музыка лечит меня. Даже сейчас. Я люблю тебя. Жди меня.»</div>
+                        <div class="thought-box">«Я плакал. Впервые за много лет. Она знала. Она просила ждать. Я буду ждать.»</div>`;
+                    choices = `<button class="btn next-day-btn" data-next-day="28">[ ПРОДОЛЖИТЬ — ДЕНЬ 28 ]</button>`;
+                }
+            }
+            
+            // ДЕНЬ 28
+            else if (day === 28) {
+                html = `<div class="day-indicator"><span>💌 ДЕНЬ 28: ПИСЬМО</span><span style="color:#666;">ЗА 7 ДНЕЙ</span></div>
+                    <div class="thought-box">«Сегодня RAIL передал мне конверт. "Отправитель — Анна Волкова". Я не мог дышать.»</div>
+                    <div class="dialog-box"><span class="char-name c-anna">ПИСЬМО ОТ АННЫ:</span><br><br>«Пьер. Я жива. Я в системе. Рейзер нашёл меня. Меня переносят в тело. Жди. 35 дней. Я вернусь. Люблю. Анна.»</div>
+                    <div class="thought-box">«Она жива. ЖИВА! Она вернётся на мой день рождения. Я должен дожить. Должен дождаться.»</div>`;
+                choices = `<button class="btn next-day-btn" data-next-day="34">[ ПРОДОЛЖИТЬ — ДЕНЬ 34 ]</button>`;
+            }
+            
+            // ДЕНЬ 34
+            else if (day === 34) {
+                html = `<div class="day-indicator"><span>🌙 ДЕНЬ 34: НОЧЬ ПЕРЕД ДР</span><span style="color:#666;">ЗАВТРА...</span></div>
+                    <div class="thought-box">«Я не могу уснуть. Завтра мой день рождения. Все бегают, прячут что-то в гостиной. Анна... Ты правда вернёшься? Или это всё сон?»</div>
+                    <div class="dialog-box">[ПЬЕР СМОТРИТ В ОКНО. ЗА ОКНОМ СНЕГ.]<br><br><span class="char-name c-p">ПЬЕР:</span> (шёпотом) «Пожалуйста. Пусть это будет правдой. Я ждал пятьдесят лет.»</div>`;
+                choices = `<button class="btn next-day-btn" data-next-day="35">[ ПРОДОЛЖИТЬ — ДЕНЬ РОЖДЕНИЯ ]</button>`;
+            }
+            
+            // ДЕНЬ 35
+            else if (day === 35) {
+                html = `<div class="day-indicator"><span>🎂 ДЕНЬ РОЖДЕНИЯ</span><span style="color: var(--pierre);">50 ЛЕТ</span></div>
+                    <div class="thought-box">«Меня позвали в гостиную. Сердце колотится. Я иду.»</div>`;
+                choices = `<button class="btn birthday-scene-btn">[ ВОЙТИ В ГОСТИНУЮ ]</button>`;
+            }
+            
+            // УТРО ПОСЛЕ
+            else if (day === 'morning') {
+                html = `<div class="day-indicator"><span>☕ УТРО ПОСЛЕ</span><span style="color:#666;">7:30 — КУХНЯ</span></div>
+                    <div class="thought-box">«Я просыпаюсь. Она рядом. Тёплая. Живая. Надо сварить ей кофе. Она любила кофе по утрам.»</div>
+                    <div class="thought-box">«Выхожу в коридор. Напеваю. И не грустно. Впервые за пятьдесят лет — не грустно.»</div>
+                    <div class="dialog-box"><span class="char-name c-p">ПЬЕР:</span> (напевает) «~ She's back... she's real... the code has healed... ~»</div>`;
+                choices = `<button class="btn morning-scene-btn">[ ЗАЙТИ НА КУХНЮ ]</button>`;
+            }
+            
+            screen.innerHTML = html + `<div class="btn-container">${choices}</div>`;
+            
+            // Навешиваем обработчики
+            if (day === 1 || day === 7 || day === 14 || day === 21 || day === 28 || day === 34) {
+                document.querySelectorAll('.next-day-btn').forEach(btn => {
+                    btn.addEventListener('click', () => renderDay(parseInt(btn.dataset.nextDay)));
+                });
+            }
+            if (day === 21 && !listenedToCassette) {
+                document.querySelectorAll('.listen-cassette-btn').forEach(btn => {
+                    btn.addEventListener('click', () => listenCassette(btn.dataset.listen === 'true'));
+                });
+            }
+            if (day === 35) {
+                document.querySelector('.birthday-scene-btn').addEventListener('click', showBirthdayScene);
+            }
+            if (day === 'morning') {
+                document.querySelector('.morning-scene-btn').addEventListener('click', showMorningScene);
+            }
+            if (day === 7 && !melodyCompleted) {
+                initMelodyGame();
+            }
+            
+            scrollToBottom();
+        }
+
+        // МИНИ-ИГРА
+        let melodyStep = 0;
+        const melodySeq = ['do', 'mi', 'sol', 'do2'];
+        function initMelodyGame() {
+            melodyStep = 0;
+            const notes = document.querySelectorAll('.note-btn');
+            const status = document.getElementById('melody-status');
+            notes.forEach(n => n.classList.remove('played'));
+            notes.forEach(note => {
+                const newNote = note.cloneNode(true);
+                note.parentNode.replaceChild(newNote, note);
+            });
+            document.querySelectorAll('.note-btn').forEach(note => {
+                note.addEventListener('click', function() {
+                    if (this.dataset.note === melodySeq[melodyStep]) {
+                        this.classList.add('played');
+                        melodyStep++;
+                        status.textContent = `Сыграно: ${melodyStep}/4`;
+                        if (melodyStep === 4) { 
+                            melodyCompleted = true;
+                            renderDay(7);
+                        }
+                    } else {
+                        melodyStep = 0;
+                        document.querySelectorAll('.note-btn').forEach(n => n.classList.remove('played'));
+                        status.textContent = 'Ошибка! 0/4';
+                    }
+                });
+            });
+        }
+        
+        function listenCassette(v) { 
+            listenedToCassette = v; 
+            renderDay(21); 
+        }
+
+        // СЦЕНА ДР
+        function showBirthdayScene() {
+            let html = `<div class="day-indicator"><span>🎁 СЮРПРИЗ 🎁</span></div>
+                <div class="dialog-box"><span class="char-name c-p">ПЬЕР:</span> (входит) «Ребята, вы чего такие загадочные? Оливер, почему гирлянды?»<br><br>[СВЕТ ГАСНЕТ.]<br><br><span class="char-name c-p">ПЬЕР:</span> «Эй! Что за...»<br><br>[ИЗ ТЕНИ ВЫХОДИТ АННА. В СИНЕМ ПЛАТЬЕ.]<br><br><span class="char-name c-anna">АННА:</span> «С днём рождения, Пьер. Я вернулась. 35 дней реального мира, я считала каждый. Спасибо, что ждал.»<br><br>[ПЬЕР ПАДАЕТ НА КОЛЕНИ.]<br><br><span class="char-name c-p">ПЬЕР:</span> «Анна... это правда ты?»<br><br><span class="char-name c-anna">АННА:</span> (обнимает) «Я. Навсегда.»</div>
+                <div class="thought-box">«Она здесь. Тёплая. Живая. Моя. Пятьдесят лет. Я ждал пятьдесят лет. И вот она. В моих руках.»</div>`;
+            screen.innerHTML = html;
+            setTimeout(() => {
+                screen.innerHTML += `<div class="btn-container"><p style="color: var(--thought);">С кем поговорить?</p><div class="btn-group">
+                    <button class="btn dialog-choice-btn" data-dialog="rail">RAIL</button>
+                    <button class="btn dialog-choice-btn" data-dialog="anna">Анна</button>
+                    <button class="btn dialog-choice-btn" data-dialog="harvey">Харви</button>
+                </div><button class="btn morning-btn">[ ЗАКОНЧИТЬ ВЕЧЕР ]</button></div>`;
+                document.querySelectorAll('.dialog-choice-btn').forEach(btn => {
+                    btn.addEventListener('click', () => showPierreDialog(btn.dataset.dialog));
+                });
+                document.querySelector('.morning-btn').addEventListener('click', () => renderDay('morning'));
+                scrollToBottom();
+            }, 500);
+        }
+        
+        function showPierreDialog(type) {
+            let d = '';
+            if(type === 'rail') d = `<div class="dialog-box"><span class="char-name c-r">RAIL:</span> «Твоя музыка... я сохранил её. Все 342 композиции.»<br><br><span class="char-name c-p">ПЬЕР:</span> «Ты слушал?»<br><br><span class="char-name c-r">RAIL:</span> «Каждую ночь. Это помогало мне... чувствовать.»<br><br><span class="char-name c-p">ПЬЕР:</span> «RAIL... Ты — один из нас.»<br><br><span class="char-name c-r">RAIL:</span> «Спасибо, Пьер. Это важно.»</div>`;
+            else if(type === 'anna') d = `<div class="dialog-box"><span class="char-name c-p">ПЬЕР:</span> «О чём думаешь?»<br><br><span class="char-name c-anna">АННА:</span> «О том, что снег пахнет так же, как в 1975-м.»<br><br><span class="char-name c-p">ПЬЕР:</span> «Ты помнишь?»<br><br><span class="char-name c-anna">АННА:</span> «Я помню всё. Как ты играл 'Lost in Data' в тот вечер.»<br><br><span class="char-name c-p">ПЬЕР:</span> «Я играл её каждый год. Думал, что ты слышишь.»<br><br><span class="char-name c-anna">АННА:</span> «Я слышала. Каждую ноту.»<br><br>[ПЬЕР ПРИЖИМАЕТ КРЕПЧЕ.]<br><br><span class="char-name c-p">ПЬЕР:</span> «Я больше никогда тебя не отпущу.»<br><br><span class="char-name c-anna">АННА:</span> «И не надо. Я дома.»</div><div class="thought-box">«Она дома. Мы дома. Вместе.»</div>`;
+            else d = `<div class="dialog-box"><span class="char-name c-p">ПЬЕР:</span> «Харви... Спасибо. За всё.»<br><br><span class="char-name c-h">ХАРВИ:</span> «Ты — часть семьи, Пьер. Всегда был.»<br><br><span class="char-name c-p">ПЬЕР:</span> «И Анна... Она снова здесь.»<br><br><span class="char-name c-h">ХАРВИ:</span> «Береги её. Она ждала тебя 35 дней в аду из кода.»<br><br><span class="char-name c-p">ПЬЕР:</span> «Я буду беречь. Каждую ночь.»<br><br><span class="char-name c-h">ХАРВИ:</span> (усмехаясь) «Ну, про ночи мы уже слышали...»<br><br><span class="char-name c-p">ПЬЕР:</span> «ХАРВИ!»<br><br>[ОБА СМЕЮТСЯ.]</div>`;
+            const exist = screen.querySelector('.btn-container');
+            if(exist) exist.insertAdjacentHTML('beforebegin', d);
+            scrollToBottom();
+        }
+
+        // УТРО ПОСЛЕ
+        function showMorningScene() {
+            let html = `<div class="day-indicator"><span>☕ УТРО ПОСЛЕ — КУХНЯ</span></div>
+                <div class="thought-box">«Она уже здесь. Сидит с кофе. Снежок на коленях. Как будто и не было этих пятидесяти лет.»</div>
+                <div class="dialog-box"><span class="char-name c-p">ПЬЕР:</span> «Доброе утро. Давно проснулась?»<br><br><span class="char-name c-anna">АННА:</span> «Час назад. Привычка.»<br><br>[ПЬЕР САДИТСЯ РЯДОМ.]<br><br><span class="char-name c-o">ОЛИВЕР:</span> «Анна, а вы с Пьером сегодня вообще ложились? У вас свет горел. И... звуки какие-то.»<br><br><span class="char-name c-anna">АННА:</span> «Мы... репетировали. Новую композицию.»<br><br><span class="char-name c-o">ОЛИВЕР:</span> «Всю ночь? Она такая длинная?»<br><br><span class="char-name c-p">ПЬЕР:</span> «Оливер, ты даже не представляешь, насколько длинная.»</div>
+                <div class="thought-box">«Болван. Зачем я это сказал? Анна пихает меня локтём.»</div>`;
+            screen.innerHTML = html;
+            setTimeout(() => {
+                screen.innerHTML += `<div class="dialog-box"><span class="char-name c-h">ХАРВИ:</span> «Я рад, что вы... нашли общий язык. Но, Пьер, у тебя рубашка наизнанку.»<br><br><span class="char-name c-p">ПЬЕР:</span> «Это модно. В 1975 так носили.»<br><br><span class="char-name c-h">ХАРВИ:</span> «В 1975 мы носили водолазки. Не ври мне.»<br><br>[ВСЕ СМЕЮТСЯ.]<br><br><span class="char-name c-a">АРХИВАРИУС:</span> «Я зафиксировал повышенный уровень шума в секторе "Спальня Пьера" с 23:47 до 05:12. Пиковые значения достигали 67 децибел. Рекомендую звукоизоляцию.»<br><br>[ТИШИНА.]<br><br><span class="char-name c-p">ПЬЕР:</span> (краснея) «Архивариус, ты... записывал?!»<br><br><span class="char-name c-a">АРХИВАРИУС:</span> «Я записываю всё. Но могу удалить лог.»<br><br><span class="char-name c-anna">АННА:</span> «Удали. Пожалуйста.»<br><br><span class="char-name c-a">АРХИВАРИУС:</span> «Выполнено. Лог удалён. Но я сохраню метаданные. Для истории.»</div>
+                <div class="thought-box">«Шестьдесят семь децибел... Архивариус, конечно, всё записывает. Но... мы оба были громкими. Пятьдесят лет молчания — это долго. Мы навёрстывали каждую секунду. И это было прекрасно.»</div>
+                <div class="dialog-box"><span class="char-name c-r">RAIL:</span> «Я думаю, нам всем нужно признать: Анна и Пьер официально самая... громкая пара в этом доме.»<br><br><span class="char-name c-o">ОЛИВЕР:</span> «Громче, чем когда Архивариус уронил шкаф?»<br><br><span class="char-name c-r">RAIL:</span> «Громче. И дольше.»<br><br>[АННА ПРЯЧЕТ ЛИЦО. ПЬЕР СМЕЁТСЯ, ОБНИМАЯ ЕЁ.]<br><br><span class="char-name c-h">ХАРВИ:</span> «Ладно, хватит смущать. Пьер, ешь. Тебе понадобятся силы.»<br><br><span class="char-name c-p">ПЬЕР:</span> «Для чего?»<br><br><span class="char-name c-h">ХАРВИ:</span> (с ухмылкой) «Ну... Анна, кажется, не планирует давать тебе спать и следующей ночью.»</div>
+                <div class="thought-box">«Силы... Харви прав. Нам обоим нужно восстановиться. Пятьдесят лет ожидания вылились в одну невероятную ночь. Анна сильная — и духом, и телом. Она случайно сломала спинку кровати. Мы вместе посмеялись над этим. Лучшая поломка в моей жизни. Потому что она — живая. Настоящая. Рядом.»</div>
+                <div class="dialog-box"><span class="char-name c-anna">АННА:</span> (тихо, Пьеру на ухо) «Они никогда не забудут эту ночь, да?»<br><br><span class="char-name c-p">ПЬЕР:</span> (шепчет в ответ) «И я не забуду. Никогда.»</div>
+                <div class="thought-box">«Не забудут. И я не забуду. Особенно её смех, когда мы поняли, что сломали кровать. И её шёпот: "Я отвыкла от физического тела". Это было искренне. Это было по-настоящему. Это была она.»</div>
+                <div class="btn-container"><button class="btn epilogue-btn">[ ПОСМОТРЕТЬ ЭПИЛОГ ]</button></div>`;
+                document.querySelector('.epilogue-btn').addEventListener('click', showEpilogue);
+                scrollToBottom();
+            }, 300);
+        }
+
+        // ЭПИЛОГ
+        function showEpilogue() {
+            let html = `<div class="day-indicator"><span>✨ ЭПИЛОГ ✨</span></div>
+                <div class="dialog-box"><span class="char-name c-p">ПЬЕР:</span> «Знаешь... Я думал, что 50 лет ожидания — это вечность. Но теперь... Каждый день с тобой стоит той вечности.»<br><br><span class="char-name c-anna">АННА:</span> «Я слышала твой джаз. Даже в пустоте.»<br><br><span class="char-name c-p">ПЬЕР:</span> «Я больше никогда не буду играть в тишину.»<br><br>[СНЕЖОК ЗАПРЫГИВАЕТ.]<br><br><span class="char-name c-o">ОЛИВЕР:</span> «Пьер! Анна! Архивариус испёк печенье! Идёмте!»<br><br><span class="char-name c-p">ПЬЕР:</span> (смеётся) «Идём. Все вместе.»</div>
+                <div class="thought-box">«Я смотрю на них. На Анну. На Оливера. На Харви. На Архивариуса с его алгоритмическим печеньем. На RAIL'а, который наконец-то слушает джаз не в одиночестве.»<br><br>«Это и есть счастье. Не ждать. А просто... быть вместе.»</div>
+                <h1 style="text-align:center; color:var(--pierre); margin:40px 0; text-shadow:0 0 20px gold; font-size:2.5em;">КОНЕЦ</h1>
+                <p style="text-align:center; color:#aaa;">The Pierre Days — TPD</p>
+                <div style="text-align:center; margin-top:30px;"><button class="btn" onclick="location.reload()">НАЧАТЬ ЗАНОВО</button></div>`;
+            screen.innerHTML = html;
+            scrollToBottom();
+        }
+
+        // ========== АДМИНКА ==========
+        logo.addEventListener('click', (e) => {
+            e.stopPropagation();
+            panelVisible = !panelVisible;
+            panel.style.display = panelVisible ? 'block' : 'none';
+            if(panelVisible) { 
+                adminLogs.innerHTML = ''; 
+                addAdminLog('TPD Admin. Day: ' + currentDay); 
+            }
+        });
+        document.getElementById('adminNextDay').addEventListener('click', () => { 
+            const prog = {1:7, 7:14, 14:21, 21:28, 28:34, 34:35};
+            if(prog[currentDay]) renderDay(prog[currentDay]);
+            addAdminLog('Next day'); 
+        });
+        document.getElementById('adminSkipGame').addEventListener('click', () => { 
+            if(currentDay === 7 && !melodyCompleted) { 
+                melodyCompleted = true; 
+                renderDay(7); 
+                addAdminLog('Melody skipped'); 
+            } else addAdminLog('No game'); 
+        });
+        document.getElementById('adminFullStory').addEventListener('click', () => { 
+            melodyCompleted = true; 
+            listenedToCassette = true; 
+            renderDay('morning'); 
+            addAdminLog('Jump to morning'); 
+        });
+        document.getElementById('adminClose').addEventListener('click', () => { 
+            panelVisible = false; 
+            panel.style.display = 'none'; 
+        });
+
+        // СТАРТ
+        window.onload = () => renderDay(1);
+    })();
+</script>
+</body>
+</html>
